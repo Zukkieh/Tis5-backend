@@ -4,19 +4,19 @@
 const Schema = use('Schema')
 
 class UserSchema extends Schema {
-  up () {
+  up() {
     this.create('users', (table) => {
       table.bigInteger('person_code').primary()
       table.string('name', 254).notNullable()
       table.string('email', 254).notNullable().unique()
       table.string('password', 60).notNullable()
-      table.string('type', 60).notNullable()
+      table.enu('type', ['Aluno(a)', 'Coordenador(a)'], { useNative: true, enumName: 'user_type' }).notNullable()
       table.boolean('deleted').defaultTo(false)
       table.timestamps()
     })
   }
 
-  down () {
+  down() {
     this.drop('users')
   }
 }
