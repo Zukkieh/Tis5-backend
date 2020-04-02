@@ -70,7 +70,7 @@ class CoordinatorController {
       const user = await User.create({ ...userData, type: TYPE_VALUE })
       const coordinator = await Coordinator.create({ user_id: user.id })
 
-      return response.status(201).send({ coordinator })
+      return response.status(201).send(coordinator)
 
     } else
       return response.status(401).send({

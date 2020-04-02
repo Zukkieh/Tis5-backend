@@ -76,7 +76,7 @@ class StudentController {
     const user = await User.create({ ...userData, type: TYPE_VALUE })
     const student = await Student.create({ ...studentData, user_id: user.id })
 
-    return response.status(201).send({ student })
+    return response.status(201).send(student)
   }
 
   /**
