@@ -27,7 +27,16 @@ class AuthController {
         if (user.type == 'Aluno(a)')
             data = await user.student().fetch()
 
-        return { token, user_type: user.type, data }
+        return {
+            token,
+            user_type: user.type,
+            data: {
+                person_code: user.person_code,
+                email: user.email,
+                name: user.name,
+                ...data.$attributes
+            }
+        }
     }
 }
 
