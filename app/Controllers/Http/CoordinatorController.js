@@ -133,7 +133,7 @@ class CoordinatorController {
           error: 'Coordinator not found'
         })
 
-      if (auth.user.id == coordinator.user_id) {
+      if (!auth.user.type || auth.user.id == coordinator.user_id) {
 
         const validation = await validateAll(request.all(), {
           password: 'required|min:6'

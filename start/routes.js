@@ -24,8 +24,8 @@ Route.post('/student', 'StudentController.store')
 Route.post('/login', 'AuthController.login')
 
 Route.group(() => {
-  Route.resource('coordinator', 'CoordinatorController').apiOnly().except(['delete'])
-  Route.resource('student', 'StudentController').apiOnly().except(['delete', 'store'])
+  Route.resource('coordinator', 'CoordinatorController').apiOnly().except(['destroy'])
+  Route.resource('student', 'StudentController').apiOnly().except(['destroy', 'store'])
   Route.get('user/:person_code', 'UserController.show')
   Route.patch('user/:id', 'UserController.update')
   Route.delete('user/:id', 'UserController.destroy')

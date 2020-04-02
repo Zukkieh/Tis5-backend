@@ -137,7 +137,7 @@ class StudentController {
           error: 'Student not found'
         })
 
-      if (auth.user.id == student.user_id) {
+      if (!auth.user.type || auth.user.id == student.user_id) {
 
         const validation = await validateAll(request.all(), {
           password: 'min:6',
