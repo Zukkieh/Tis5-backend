@@ -22,10 +22,14 @@ class AuthController {
 
         let data;
 
-        if (user.type == 'Coordenador(a)')
+        if (user.type == 'Coordenador(a)') {
             data = await user.coordinator().fetch()
-        if (user.type == 'Aluno(a)')
+            data = { ...data.$attributes }
+
+        } else if (user.type == 'Aluno(a)') {
             data = await user.student().fetch()
+            data = { ...data.$attributes }
+        }
 
         return {
             token,
@@ -34,7 +38,7 @@ class AuthController {
                 person_code: user.person_code,
                 email: user.email,
                 name: user.name,
-                ...data.$attributes
+                ...data
             }
         }
     }
