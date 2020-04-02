@@ -8,19 +8,26 @@ class AuthController {
 
         const { person_code, password } = request.all()
 
-        const token = await auth.attempt(person_code, password)
+        const { token } = await auth.attempt(person_code, password)
 
-        const { type, deleted } = await User.query()
+        const user = await User.query()
             .where('person_code', person_code)
             .first()
 
-        if (deleted)
+        if (user.deleted)
             return response.status(401).send({
                 error: 'Permission denied',
                 message: 'This user has been deleted'
-            })
+            });
 
-        return { token, user_type: type }
+        let data;
+
+        if (user.type == 'Coordenador(a)')
+            data = await user.coordinator().fetch()
+        if (user.type == 'Aluno(a)')
+            data = await user.student().fetch()
+
+        return { token, user_type: user.type, data }
     }
 }
 
