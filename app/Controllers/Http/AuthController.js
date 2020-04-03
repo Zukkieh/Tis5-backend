@@ -18,9 +18,9 @@ class AuthController {
             return response.status(401).send({
                 error: 'Permission denied',
                 message: 'This user has been deleted'
-            });
+            })
 
-        let data;
+        let data
 
         if (user.type == 'Coordenador(a)') {
             data = await user.coordinator().fetch()

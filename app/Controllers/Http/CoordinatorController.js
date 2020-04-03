@@ -29,13 +29,13 @@ class CoordinatorController {
   async index() {
 
     const coordinators = await Database
-      .select(
+      .select([
         'coordinators.id',
         'coordinators.user_id',
         'users.person_code',
         'users.name',
         'users.email'
-      )
+      ])
       .from('coordinators')
       .innerJoin('users', 'users.id', 'coordinators.user_id')
       .where('users.deleted', false)
@@ -64,7 +64,9 @@ class CoordinatorController {
       })
 
       if (validation.fails())
-        return response.status(400).send({ errors: validation.messages() })
+        return response.status(400).send({
+          errors: validation.messages()
+        })
 
       const userData = request.only(['person_code', 'name', 'email', 'password'])
       const user = await User.create({ ...userData, type: TYPE_VALUE })
@@ -91,13 +93,13 @@ class CoordinatorController {
   async show({ params, response }) {
 
     const coordinator = await Database
-      .select(
+      .select([
         'coordinators.id',
         'coordinators.user_id',
         'users.person_code',
         'users.name',
         'users.email'
-      )
+      ])
       .from('coordinators')
       .innerJoin('users', 'users.id', 'coordinators.user_id')
       .where('coordinators.id', params.id)
@@ -136,20 +138,30 @@ class CoordinatorController {
       if (!auth.user.type || auth.user.id == coordinator.user_id) {
 
         const validation = await validateAll(request.all(), {
-          password: 'required|min:6'
+          password: 'min:6'
         })
 
         if (validation.fails())
-          return response.status(400).send({ errors: validation.messages() })
+          return response.status(400).send({
+            errors: validation.messages()
+          })
 
         const { password } = request.all()
 
-        const user = await User.query()
-          .where('id', coordinator.user_id)
-          .first()
+        if (password) {
 
-        user.password = password
-        await user.save()
+          const user = await User.query()
+            .where('id', coordinator.user_id)
+            .first()
+
+          user.password = password
+          await user.save()
+
+        } else
+          return response.status(400).send({
+            success: false,
+            message: 'No data to update'
+          })
 
         return response.status(200).send({
           success: true,

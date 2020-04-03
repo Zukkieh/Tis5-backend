@@ -11,7 +11,14 @@ class UserController {
         if (!auth.user.type) {
 
             const user = await User.query()
-                .select('id', 'person_code', 'name', 'email', 'type', 'deleted')
+                .select([
+                    'id',
+                    'person_code',
+                    'name',
+                    'email',
+                    'type',
+                    'deleted'
+                ])
                 .where('person_code', params.person_code)
                 .first()
 
@@ -39,7 +46,9 @@ class UserController {
             })
 
             if (validation.fails())
-                return response.status(400).send({ errors: validation.messages() })
+                return response.status(400).send({
+                    errors: validation.messages()
+                })
 
             const { name, type } = request.all()
 

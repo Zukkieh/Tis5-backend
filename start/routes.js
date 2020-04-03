@@ -16,17 +16,12 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
-Route.get('/', () => {
-  return { name: 'SGM API', type: 'REST API', version: 'v0.1.0' }
-})
-
-Route.post('/student', 'StudentController.store')
-Route.post('/login', 'AuthController.login')
+Route.post('/student', 'StudentController.store').as('student.store')
+Route.post('/login', 'AuthController.login').as('auth.login')
 
 Route.group(() => {
   Route.resource('coordinator', 'CoordinatorController').apiOnly().except(['destroy'])
   Route.resource('student', 'StudentController').apiOnly().except(['destroy', 'store'])
-  Route.get('user/:person_code', 'UserController.show')
-  Route.patch('user/:id', 'UserController.update')
-  Route.delete('user/:id', 'UserController.destroy')
+  Route.resource('user', 'UserController').only(['update', 'destroy'])
+  Route.get('user/:person_code', 'UserController.show').as('user.show')
 }).middleware('auth')

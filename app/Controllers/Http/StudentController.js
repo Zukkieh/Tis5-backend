@@ -29,7 +29,7 @@ class StudentController {
   async index() {
 
     const students = await Database
-      .select(
+      .select([
         'students.id',
         'students.user_id',
         // 'students.course_id',
@@ -39,7 +39,7 @@ class StudentController {
         'users.person_code',
         'users.name',
         'users.email'
-      )
+      ])
       .from('students')
       .innerJoin('users', 'users.id', 'students.user_id')
       .where('users.deleted', false)
@@ -91,7 +91,7 @@ class StudentController {
   async show({ params, response }) {
 
     const student = await Database
-      .select(
+      .select([
         'students.id',
         'students.user_id',
         // 'students.course_id',
@@ -101,7 +101,7 @@ class StudentController {
         'users.person_code',
         'users.name',
         'users.email'
-      )
+      ])
       .from('students')
       .innerJoin('users', 'users.id', 'students.user_id')
       .where('students.id', params.id)
@@ -145,7 +145,9 @@ class StudentController {
         })
 
         if (validation.fails())
-          return response.status(400).send({ errors: validation.messages() })
+          return response.status(400).send({
+            errors: validation.messages()
+          })
 
         const { password, phone } = request.all()
 
