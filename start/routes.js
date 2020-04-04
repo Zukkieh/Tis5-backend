@@ -16,11 +16,12 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
-Route.post('/student', 'StudentController.store').as('student.store')
-Route.post('/login', 'AuthController.login').as('auth.login')
+Route.post('student', 'StudentController.store').as('student.store')
+Route.post('auth', 'AuthController.authenticate').as('auth.authenticate')
 
 Route.group(() => {
-  Route.resource('coordinator', 'CoordinatorController').apiOnly().except(['destroy'])
+  Route.patch('auth/:user_id', 'AuthController.update').as('auth.update')
+  Route.resource('coordinator', 'CoordinatorController').apiOnly().except(['destroy', 'update'])
   Route.resource('student', 'StudentController').apiOnly().except(['destroy', 'store'])
   Route.resource('user', 'UserController').only(['update', 'destroy'])
   Route.get('user/:person_code', 'UserController.show').as('user.show')
