@@ -1,8 +1,8 @@
 'use strict'
 
-const User = use('App/Models/User')
-
 const { validateAll } = use('Validator')
+
+const User = use('App/Models/User')
 
 class UserController {
 
@@ -11,7 +11,14 @@ class UserController {
         if (!auth.user.type) {
 
             const user = await User.query()
-                .select('id', 'person_code', 'name', 'email', 'type', 'deleted')
+                .select([
+                    'id',
+                    'person_code',
+                    'name',
+                    'email',
+                    'type',
+                    'deleted'
+                ])
                 .where('person_code', params.person_code)
                 .first()
 
@@ -20,7 +27,7 @@ class UserController {
                     error: 'User not found'
                 })
 
-            return user
+            return response.status(200).send(user)
 
         } else
             return response.status(401).send({
@@ -34,33 +41,30 @@ class UserController {
         if (!auth.user.type) {
 
             const validation = await validateAll(request.all(), {
-                name: 'min:3',
-                type: 'min:3'
+                name: 'string|min:3|required_without_all:password,type',
+                password: 'string|min:6|required_without_all:name,type',
+                type: 'string|min:3|required_without_all:name,password'
             })
 
             if (validation.fails())
-                return response.status(400).send({ errors: validation.messages() })
-
-            const { name, type } = request.all()
-
-            if (name || type) {
-
-                const user = await User.query()
-                    .where('id', params.id)
-                    .first()
-
-                if (name)
-                    user.name = name
-                if (type)
-                    user.type = type
-
-                await user.save()
-
-            } else
                 return response.status(400).send({
-                    success: false,
-                    message: 'No data to update'
+                    errors: validation.messages()
                 })
+
+            const { name, password, type } = request.all()
+
+            const user = await User.query()
+                .where('id', params.id)
+                .first()
+
+            if (name)
+                user.name = name
+            if (password)
+                user.password = password
+            if (type)
+                user.type = type
+
+            await user.save()
 
             return response.status(200).send({
                 success: true,
