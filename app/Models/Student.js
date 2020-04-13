@@ -9,9 +9,9 @@ class Student extends Model {
         return this.belongsTo('App/Models/User')
     }
 
-    // course() {
-    //     return this.belongsTo('App/Models/Course')
-    // }
+    course() {
+        return this.belongsTo('App/Models/Course')
+    }
 }
 
 module.exports = Student

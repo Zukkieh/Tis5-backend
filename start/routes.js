@@ -16,6 +16,7 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
+Route.get('course', 'CourseController.index').as('course.index')
 Route.post('student', 'StudentController.store').as('student.store')
 Route.post('auth', 'AuthController.authenticate').as('auth.authenticate')
 
@@ -25,4 +26,5 @@ Route.group(() => {
   Route.resource('student', 'StudentController').apiOnly().except(['destroy', 'store'])
   Route.resource('user', 'UserController').only(['update', 'destroy'])
   Route.get('user/:person_code', 'UserController.show').as('user.show')
+  Route.resource('course', 'CourseController').apiOnly().except(['index', 'destroy'])
 }).middleware('auth')

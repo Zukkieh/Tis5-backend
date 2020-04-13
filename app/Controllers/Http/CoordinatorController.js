@@ -72,6 +72,7 @@ class CoordinatorController {
       .where('coordinators.id', params.id)
       .where('users.deleted', false)
       .where('users.type', TYPE_VALUE)
+      .first()
 
     if (!coordinator)
       return response.status(404).send({

@@ -13,9 +13,6 @@ class StudentSchema extends Schema {
       table.integer('user_id').unsigned().notNullable()
         .references('id').inTable('users')
         .onUpdate('CASCADE').onDelete('CASCADE')
-      // table.integer('course_id').unsigned().notNullable()
-      //   .references('id').inTable('courses')
-      //   .onUpdate('CASCADE').onDelete('CASCADE')
       table.timestamps()
     })
   }

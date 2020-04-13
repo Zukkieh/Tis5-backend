@@ -5,8 +5,12 @@ const Model = use('Model')
 
 class Coordinator extends Model {
 
-    user(){
+    user() {
         return this.belongsTo('App/Models/User')
+    }
+
+    course() {
+        return this.hasOne('App/Models/Course')
     }
 }
 

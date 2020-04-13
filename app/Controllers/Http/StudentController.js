@@ -5,8 +5,10 @@ const { validateAll } = use('Validator')
 
 const User = use('App/Models/User')
 const Student = use('App/Models/Student')
+const Course = use('App/Models/Course')
 
 const TYPE_VALUE = 'Aluno(a)'
+const COORD = 'Coordenador(a)'
 
 class StudentController {
 
@@ -16,7 +18,7 @@ class StudentController {
       .select([
         'students.id',
         'students.user_id',
-        // 'students.course_id',
+        'students.course_id',
         'students.registration',
         'students.phone',
         'students.is_monitor',
@@ -40,19 +42,32 @@ class StudentController {
       email: 'required|email|unique:users',
       password: 'required|min:6',
       registration: 'required|unique:students',
-      phone: 'required|min:11|unique:students'
+      phone: 'required|min:11|unique:students',
+      course_id: 'required|integer|not_equals:0'
     })
 
     if (validation.fails())
-      return response.status(400).send({ errors: validation.messages() })
+      return response.status(400).send({
+        errors: validation.messages()
+      })
 
-    const userData = request.only(['person_code', 'name', 'email', 'password'])
-    const studentData = request.only(['registration', 'phone'])
+    const { course_id } = request.all()
+    const courseExists = await Course.findBy('id', course_id)
 
-    const user = await User.create({ ...userData, type: TYPE_VALUE })
-    const student = await Student.create({ ...studentData, user_id: user.id })
+    if (courseExists) {
 
-    return response.status(201).send(student)
+      const userData = request.only(['person_code', 'name', 'email', 'password'])
+      const studentData = request.only(['registration', 'phone'])
+
+      const user = await User.create({ ...userData, type: TYPE_VALUE })
+      const student = await Student.create({ ...studentData, course_id, user_id: user.id })
+
+      return response.status(201).send(student)
+
+    } else
+      return response.status(404).send({
+        error: 'Course not found'
+      })
   }
 
   async show({ params, response }) {
@@ -61,7 +76,7 @@ class StudentController {
       .select([
         'students.id',
         'students.user_id',
-        // 'students.course_id',
+        'students.course_id',
         'students.registration',
         'students.phone',
         'students.is_monitor',
@@ -74,6 +89,7 @@ class StudentController {
       .where('students.id', params.id)
       .where('users.deleted', false)
       .where('users.type', TYPE_VALUE)
+      .first()
 
     if (!student)
       return response.status(404).send({
@@ -85,7 +101,7 @@ class StudentController {
 
   async update({ params, request, response, auth }) {
 
-    if (!auth.user.type || auth.user.type == TYPE_VALUE) {
+    if (auth.user.type == COORD || auth.user.type == TYPE_VALUE) {
 
       const student = await Student.query()
         .where('id', params.id)
@@ -96,10 +112,11 @@ class StudentController {
           error: 'Student not found'
         })
 
-      if (!auth.user.type || auth.user.id == student.user_id) {
+      if (auth.user.type == COORD || auth.user.id == student.user_id) {
 
         const validation = await validateAll(request.all(), {
-          phone: 'string|min:11|required'
+          phone: 'string|min:11|required_without_all:course_id',
+          course_id: 'integer|not_equals:0|required_without_all:phone'
         })
 
         if (validation.fails())
@@ -107,9 +124,32 @@ class StudentController {
             errors: validation.messages()
           })
 
-        const { phone } = request.all()
+        const { phone, course_id } = request.all()
 
-        student.phone = phone
+        if (phone)
+          student.phone = phone
+
+        if (course_id) {
+
+          if (auth.user.type == COORD) {
+
+            const courseExists = await Course.findBy('id', course_id)
+
+            if (courseExists)
+              student.course_id = course_id
+
+            else
+              return response.status(404).send({
+                error: 'Course not found'
+              })
+
+          } else
+            return response.status(401).send({
+              error: 'Permision denied',
+              message: 'You are not allowed to change this registry data',
+              field: 'course_id'
+            })
+        }
 
         await student.save()
 
