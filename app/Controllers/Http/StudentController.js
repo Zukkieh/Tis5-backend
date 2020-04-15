@@ -8,11 +8,10 @@ const Student = use('App/Models/Student')
 const Course = use('App/Models/Course')
 
 const TYPE_VALUE = 'Aluno(a)'
-const COORD = 'Coordenador(a)'
 
 class StudentController {
 
-  async index({ response }) {
+  async index({ params, response }) {
 
     const students = await Database
       .select([
@@ -28,6 +27,7 @@ class StudentController {
       ])
       .from('students')
       .innerJoin('users', 'users.id', 'students.user_id')
+      .where('students.course_id', params.course_id)
       .where('users.deleted', false)
       .where('users.type', TYPE_VALUE)
 
@@ -101,63 +101,60 @@ class StudentController {
 
   async update({ params, request, response, auth }) {
 
-    if (auth.user.type == COORD || auth.user.type == TYPE_VALUE) {
+    const student = await Student.query()
+      .where('id', params.id)
+      .first()
 
-      const student = await Student.query()
-        .where('id', params.id)
-        .first()
+    if (!student)
+      return response.status(404).send({
+        error: 'Student not found'
+      })
 
-      if (!student)
-        return response.status(404).send({
-          error: 'Student not found'
+    if (!auth.user.type || auth.user.id == student.user_id) {
+
+      const validation = await validateAll(request.all(), {
+        phone: 'string|min:11|required_without_all:course_id',
+        course_id: 'integer|not_equals:0'
+      })
+
+      if (validation.fails())
+        return response.status(400).send({
+          errors: validation.messages()
         })
 
-      if (auth.user.type == COORD || auth.user.id == student.user_id) {
+      const { phone, course_id } = request.all()
 
-        const validation = await validateAll(request.all(), {
-          phone: 'string|min:11|required_without_all:course_id',
-          course_id: 'integer|not_equals:0|required_without_all:phone'
-        })
+      if (phone)
+        student.phone = phone
 
-        if (validation.fails())
-          return response.status(400).send({
-            errors: validation.messages()
-          })
+      if (course_id) {
 
-        const { phone, course_id } = request.all()
+        if (!auth.user.type) {
 
-        if (phone)
-          student.phone = phone
+          const courseExists = await Course.findBy('id', course_id)
 
-        if (course_id) {
+          if (courseExists)
+            student.course_id = course_id
 
-          if (auth.user.type == COORD) {
-
-            const courseExists = await Course.findBy('id', course_id)
-
-            if (courseExists)
-              student.course_id = course_id
-
-            else
-              return response.status(404).send({
-                error: 'Course not found'
-              })
-
-          } else
-            return response.status(401).send({
-              error: 'Permision denied',
-              message: 'You are not allowed to change this registry data',
-              field: 'course_id'
+          else
+            return response.status(404).send({
+              error: 'Course not found'
             })
-        }
 
-        await student.save()
-
-        return response.status(200).send({
-          success: true,
-          message: 'Student updated successfully'
-        })
+        } else
+          return response.status(401).send({
+            error: 'Permision denied',
+            message: 'You are not allowed to change this registry data',
+            field: 'course_id'
+          })
       }
+
+      await student.save()
+
+      return response.status(200).send({
+        success: true,
+        message: 'Student updated successfully'
+      })
     }
     return response.status(401).send({
       error: 'Permision denied',
