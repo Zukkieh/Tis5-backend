@@ -8,7 +8,8 @@ class CourseSchema extends Schema {
     this.create('courses', (table) => {
       table.increments()
       table.string('name', 254).notNullable()
-      table.enu('campus', ['Praça da Liberdade'], { useNative: true, enumName: 'course_campus' }).notNullable()
+      table.enu('campus', ['Praça da Liberdade'],
+        { useNative: true, enumName: 'course_campus' }).notNullable()
       table.integer('coordinator_id').unsigned()
         .references('id').inTable('coordinators')
         .onUpdate('CASCADE').onDelete('NO ACTION')

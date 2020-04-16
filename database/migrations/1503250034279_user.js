@@ -11,7 +11,8 @@ class UserSchema extends Schema {
       table.string('name', 254).notNullable()
       table.string('email', 254).notNullable().unique()
       table.string('password', 60).notNullable()
-      table.enu('type', ['Aluno(a)', 'Coordenador(a)'], { useNative: true, enumName: 'user_type' })
+      table.enu('type', ['Aluno(a)', 'Coordenador(a)'],
+        { useNative: true, enumName: 'user_type' })
       table.boolean('deleted').defaultTo(false)
       table.timestamps()
     })

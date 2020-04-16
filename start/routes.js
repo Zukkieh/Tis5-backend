@@ -16,6 +16,9 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
+Route.get('enum/user/type', 'EnumController.user_type').as('enum.user_type')
+Route.get('enum/course/campus', 'EnumController.course_campus').as('enum.course_campus')
+Route.get('enum/subject/shift', 'EnumController.subject_shift').as('enum.subject_shift')
 Route.get('course', 'CourseController.index').as('course.index')
 Route.post('student', 'StudentController.store').as('student.store')
 Route.post('auth', 'AuthController.authenticate').as('auth.authenticate')
@@ -23,8 +26,11 @@ Route.post('auth', 'AuthController.authenticate').as('auth.authenticate')
 Route.group(() => {
   Route.patch('auth/:user_id', 'AuthController.update').as('auth.update')
   Route.resource('coordinator', 'CoordinatorController').apiOnly().except(['destroy', 'update'])
-  Route.resource('student', 'StudentController').apiOnly().except(['destroy', 'store'])
+  Route.resource('student', 'StudentController').only(['show', 'update'])
+  Route.get('course/:course_id/student', 'StudentController.index').as('student.index')
   Route.resource('user', 'UserController').only(['update', 'destroy'])
   Route.get('user/:person_code', 'UserController.show').as('user.show')
   Route.resource('course', 'CourseController').apiOnly().except(['index', 'destroy'])
+  Route.resource('subject', 'SubjectController').apiOnly().except(['index', 'destroy'])
+  Route.get('course/:course_id/subject', 'SubjectController.index').as('subject.index')
 }).middleware('auth')

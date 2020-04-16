@@ -31,9 +31,14 @@ class CourseController {
 
     if (!auth.user.type) {
 
+      const enu = await Database
+        .raw('SELECT unnest(enum_range(NULL::course_campus))::text AS campus')
+
+      const campus_values = enu.rows.map(course => course.campus)
+
       const validation = await validateAll(request.all(), {
         name: 'required|string|min:5',
-        campus: 'required|string|min:5',
+        campus: `required|string|in:${campus_values}`,
         coordinator_id: 'integer|not_equals:0'
       })
 
