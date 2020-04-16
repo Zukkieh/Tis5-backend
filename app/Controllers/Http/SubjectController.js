@@ -29,8 +29,8 @@ class SubjectController {
     if (auth.user.type == COORD) {
 
       const validation = await validateAll(request.all(), {
-        name: 'string|min:3|required',
-        shift: 'string|in:Manhã,Tarde,Noite|required'
+        name: 'required|string|min:3',
+        shift: 'required|string|in:Manhã,Tarde,Noite'
       })
 
       if (validation.fails())

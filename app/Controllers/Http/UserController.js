@@ -43,7 +43,7 @@ class UserController {
             const validation = await validateAll(request.all(), {
                 name: 'string|min:3|required_without_all:password,type',
                 password: 'string|min:6|required_without_all:name,type',
-                type: 'string|min:3|required_without_all:name,password'
+                type: 'string|in:Aluno(a),Coordenador(a)|required_without_all:name,password'
             })
 
             if (validation.fails())

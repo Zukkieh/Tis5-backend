@@ -8,7 +8,8 @@ class SubjectSchema extends Schema {
     this.create('subjects', (table) => {
       table.increments()
       table.string('name', 254).notNullable()
-      table.string('shift', 254).notNullable()
+      table.enu('shift', ['Manhã', 'Tarde', 'Noite'],
+        { useNative: true, enumName: 'subject_shift' }).notNullable()
       table.boolean('active').defaultTo(true)
       table.integer('course_id').unsigned().notNullable()
         .references('id').inTable('courses')
