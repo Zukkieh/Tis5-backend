@@ -28,7 +28,7 @@ class AuthController {
             .first()
 
         if (user.deleted)
-            return response.status(401).send({
+            return response.status(403).send({
                 error: 'Permission denied',
                 message: 'This user has been deleted'
             })
@@ -92,7 +92,7 @@ class AuthController {
             })
 
         } else
-            return response.status(401).send({
+            return response.status(403).send({
                 error: 'Permision denied',
                 message: 'You are not allowed to change this record'
             })

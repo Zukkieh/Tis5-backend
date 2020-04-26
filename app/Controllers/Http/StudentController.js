@@ -11,7 +11,9 @@ const TYPE_VALUE = 'Aluno(a)'
 
 class StudentController {
 
-  async index({ params, response }) {
+  async index({ params, request, response }) {
+
+    const { page = 1, limit = 10 } = request.get()
 
     const students = await Database
       .select([
@@ -30,6 +32,7 @@ class StudentController {
       .where('students.course_id', params.course_id)
       .where('users.deleted', false)
       .where('users.type', TYPE_VALUE)
+      .paginate(page, limit)
 
     return response.status(200).send(students)
   }
@@ -142,7 +145,7 @@ class StudentController {
             })
 
         } else
-          return response.status(401).send({
+          return response.status(403).send({
             error: 'Permision denied',
             message: 'You are not allowed to change this registry data',
             field: 'course_id'
@@ -156,7 +159,7 @@ class StudentController {
         message: 'Student updated successfully'
       })
     }
-    return response.status(401).send({
+    return response.status(403).send({
       error: 'Permision denied',
       message: 'You are not allowed to change this record'
     })

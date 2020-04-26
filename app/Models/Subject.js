@@ -8,6 +8,10 @@ class Subject extends Model {
     course() {
         return this.belongsTo('App/Models/Course')
     }
+
+    monitors() {
+        return this.hasMany('App/Models/Monitor')
+    }
 }
 
 module.exports = Subject
