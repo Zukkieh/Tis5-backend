@@ -11,7 +11,9 @@ const COORD = 'Coordenador(a)'
 
 class MonitorController {
 
-  async index({ params, response }) {
+  async index({ params, request, response }) {
+
+    const { page = 1, limit = 10 } = request.get()
 
     const monitors = await Monitor.query()
       .select([
@@ -24,7 +26,7 @@ class MonitorController {
       .where('subject_id', params.subject_id)
       .where('deleted', false)
       .with('student')
-      .fetch()
+      .paginate(page, limit)
 
     return response.status(200).send(monitors)
   }

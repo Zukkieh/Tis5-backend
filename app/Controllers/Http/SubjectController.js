@@ -9,7 +9,9 @@ const COORD = 'Coordenador(a)'
 
 class SubjectController {
 
-  async index({ params, response }) {
+  async index({ params, request, response }) {
+
+    const { page = 1, limit = 10 } = request.get()
 
     const subjects = await Subject.query()
       .select([
@@ -19,7 +21,7 @@ class SubjectController {
         'active'
       ])
       .where('course_id', params.course_id)
-      .fetch()
+      .paginate(page, limit)
 
     return response.status(200).send(subjects)
   }

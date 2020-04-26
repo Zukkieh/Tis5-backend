@@ -35,4 +35,5 @@ Route.group(() => {
   Route.get('course/:course_id/subject', 'SubjectController.index').as('subject.index')
   Route.resource('monitor', 'MonitorController').only(['store', 'show', 'destroy'])
   Route.get('subject/:subject_id/monitor', 'MonitorController.index').as('monitor.index')
+  Route.get('search/coordinator', 'SearchController.coordinator').as('search.coordinator')
 }).middleware('auth')

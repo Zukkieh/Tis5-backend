@@ -10,7 +10,9 @@ const TYPE_VALUE = 'Coordenador(a)'
 
 class CourseController {
 
-  async index({ response }) {
+  async index({ request, response }) {
+
+    const { page = 1, limit = 10 } = request.get()
 
     const courses = await Database
       .select([
@@ -23,6 +25,7 @@ class CourseController {
       .from('courses')
       .leftJoin('coordinators', 'coordinators.id', 'courses.coordinator_id')
       .leftJoin('users', 'users.id', 'coordinators.user_id')
+      .paginate(page, limit)
 
     return response.status(200).send(courses)
   }

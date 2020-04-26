@@ -11,7 +11,9 @@ const TYPE_VALUE = 'Aluno(a)'
 
 class StudentController {
 
-  async index({ params, response }) {
+  async index({ params, request, response }) {
+
+    const { page = 1, limit = 10 } = request.get()
 
     const students = await Database
       .select([
@@ -30,6 +32,7 @@ class StudentController {
       .where('students.course_id', params.course_id)
       .where('users.deleted', false)
       .where('users.type', TYPE_VALUE)
+      .paginate(page, limit)
 
     return response.status(200).send(students)
   }

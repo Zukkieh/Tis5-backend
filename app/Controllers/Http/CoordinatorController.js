@@ -10,7 +10,9 @@ const TYPE_VALUE = 'Coordenador(a)'
 
 class CoordinatorController {
 
-  async index({ response }) {
+  async index({ request, response }) {
+
+    const { page = 1, limit = 10 } = request.get()
 
     const coordinators = await Database
       .select([
@@ -18,12 +20,17 @@ class CoordinatorController {
         'coordinators.user_id',
         'users.person_code',
         'users.name',
-        'users.email'
+        'users.email',
+        'courses.id as course_id',
+        'courses.name as course_name',
+        'courses.campus as course_campus'
       ])
       .from('coordinators')
       .innerJoin('users', 'users.id', 'coordinators.user_id')
+      .leftJoin('courses', 'courses.coordinator_id', 'coordinators.id')
       .where('users.deleted', false)
       .where('users.type', TYPE_VALUE)
+      .paginate(page, limit)
 
     return response.status(200).send(coordinators)
   }
