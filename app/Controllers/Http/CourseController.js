@@ -78,7 +78,7 @@ class CourseController {
       return response.status(201).send(course)
 
     } else
-      return response.status(401).send({
+      return response.status(403).send({
         error: 'Permision denied',
         message: 'You are not allowed to create new courses'
       })
@@ -169,7 +169,7 @@ class CourseController {
       })
 
     } else
-      return response.status(401).send({
+      return response.status(403).send({
         error: 'Permision denied',
         message: 'You are not allowed to create new courses'
       })

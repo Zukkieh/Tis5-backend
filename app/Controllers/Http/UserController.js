@@ -30,7 +30,7 @@ class UserController {
             return response.status(200).send(user)
 
         } else
-            return response.status(401).send({
+            return response.status(403).send({
                 error: 'Permision denied',
                 message: 'you are not allowed to access this data'
             })
@@ -72,7 +72,7 @@ class UserController {
             })
 
         } else
-            return response.status(401).send({
+            return response.status(403).send({
                 error: 'Permision denied',
                 message: 'You are not allowed to change this record'
             })
@@ -102,7 +102,7 @@ class UserController {
             return response.status(204).end()
 
         } else
-            return response.status(401).send({
+            return response.status(403).send({
                 error: 'Permision denied',
                 message: 'You are not allowed to delete this record'
             })

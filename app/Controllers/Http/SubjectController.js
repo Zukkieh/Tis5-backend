@@ -50,7 +50,7 @@ class SubjectController {
       return response.status(201).send(subject)
 
     } else
-      return response.status(401).send({
+      return response.status(403).send({
         error: 'Permision denied',
         message: 'You are not allowed to create new subjects'
       })
@@ -118,7 +118,7 @@ class SubjectController {
         })
       }
     }
-    return response.status(401).send({
+    return response.status(403).send({
       error: 'Permision denied',
       message: 'You are not allowed to change this record'
     })

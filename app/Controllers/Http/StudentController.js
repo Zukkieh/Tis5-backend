@@ -142,7 +142,7 @@ class StudentController {
             })
 
         } else
-          return response.status(401).send({
+          return response.status(403).send({
             error: 'Permision denied',
             message: 'You are not allowed to change this registry data',
             field: 'course_id'
@@ -156,7 +156,7 @@ class StudentController {
         message: 'Student updated successfully'
       })
     }
-    return response.status(401).send({
+    return response.status(403).send({
       error: 'Permision denied',
       message: 'You are not allowed to change this record'
     })
