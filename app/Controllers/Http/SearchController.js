@@ -24,8 +24,8 @@ class SearchController {
         if (!auth.user.type) {
 
             const validation = await validateAll(request.get(), {
-                person_code: 'string|min:3|required_without_all:name',
-                name: 'string|min:3|required_without_all:person_code'
+                person_code: 'string|required_without_all:name',
+                name: 'string|required_without_all:person_code'
             })
 
             if (validation.fails())
@@ -51,15 +51,15 @@ class SearchController {
 
             if (coordinators.length == 0)
                 return response.status(404).send({
-                    error: 'Coordinator not found'
+                    error: 'Coordenador não encontrado'
                 })
 
             return response.status(200).send(coordinators)
 
         } else
             return response.status(403).send({
-                error: 'Permision denied',
-                message: 'you are not allowed to access this data'
+                error: 'Permissão negada',
+                message: 'Você não tem permissão para acessar estes dados'
             })
     }
 }

@@ -30,10 +30,17 @@ class SubjectController {
 
     if (auth.user.type == COORD) {
 
+      const errorMessages = {
+        'name.required': 'O nome é obrigatório',
+        'name.min': 'O nome deve possuir no mínimo 3 caracteres',
+        'shift.required': 'O turno é obrigatório',
+        'shift.in': 'Turno inválido'
+      }
+
       const validation = await validateAll(request.all(), {
         name: 'required|string|min:3',
         shift: 'required|string|in:Manhã,Tarde,Noite'
-      })
+      }, errorMessages)
 
       if (validation.fails())
         return response.status(400).send({
@@ -53,8 +60,8 @@ class SubjectController {
 
     } else
       return response.status(403).send({
-        error: 'Permision denied',
-        message: 'You are not allowed to create new subjects'
+        error: 'Permissão negada',
+        message: 'Você não tem permissão para criar novas disciplinas'
       })
   }
 
@@ -67,7 +74,7 @@ class SubjectController {
 
     if (!subject)
       return response.status(404).send({
-        error: 'Subject not found'
+        error: 'Disciplina não encontrada'
       })
 
     return response.status(200).send(subject)
@@ -82,7 +89,7 @@ class SubjectController {
 
       if (!subject)
         return response.status(404).send({
-          error: 'Subject not found'
+          error: 'Disciplina não encontrada'
         })
 
       const coordinator = await Coordinator
@@ -92,11 +99,16 @@ class SubjectController {
 
       if (subject.course_id == course.id) {
 
+        const errorMessages = {
+          'name.min': 'O nome deve possuir no mínimo 3 caracteres',
+          'shift.in': 'Turno inválido'
+        }
+
         const validation = await validateAll(request.all(), {
           name: 'string|min:3|required_without_all:shift,active',
           shift: 'string|in:Manhã,Tarde,Noite|required_without_all:name,active',
           active: 'boolean|required_without_all:name,shift'
-        })
+        }, errorMessages)
 
         if (validation.fails())
           return response.status(400).send({
@@ -116,13 +128,13 @@ class SubjectController {
 
         return response.status(200).send({
           success: true,
-          message: 'Subject updated successfully'
+          message: 'Disciplina atualizada com sucesso'
         })
       }
     }
     return response.status(403).send({
-      error: 'Permision denied',
-      message: 'You are not allowed to change this record'
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para alterar este registro'
     })
   }
 }

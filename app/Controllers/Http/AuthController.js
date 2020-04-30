@@ -9,10 +9,15 @@ class AuthController {
 
     async authenticate({ request, response, auth }) {
 
+        const errorMessages = {
+            'person_code.required': 'O código de pessoa é obrigatório',
+            'password.required': 'A senha é obrigatória'
+        }
+
         const validation = await validateAll(request.all(), {
             person_code: 'required|string',
             password: 'required|string'
-        })
+        }, errorMessages)
 
         if (validation.fails())
             return response.status(400).send({
@@ -28,9 +33,9 @@ class AuthController {
             .first()
 
         if (user.deleted)
-            return response.status(403).send({
-                error: 'Permission denied',
-                message: 'This user has been deleted'
+            return response.status(401).send({
+                error: 'Permissão negada',
+                message: 'Este usuário foi excluído'
             })
 
         let data
@@ -56,11 +61,20 @@ class AuthController {
 
     async update({ params, request, response, auth }) {
 
+        const errorMessages = {
+            'password.required': 'As senhas são obrigatórias',
+            'password.old.required': 'A senha atual é obrigatória',
+            'password.new.required': 'A nova senha é obrigatória',
+            'password.new.different': 'A nova senha deve ser diferente da atual',
+            'password.old.min': 'A senha atual possui no mínimo 6 caracteres',
+            'password.new.min': 'A nova senha deve possuir no mínimo 6 caracteres'
+        }
+
         const validation = await validateAll(request.all(), {
             password: 'required|object',
             'password.old': 'required|string|min:6',
             'password.new': 'required|string|min:6|different:password.old',
-        })
+        }, errorMessages)
 
         if (validation.fails())
             return response.status(400).send({
@@ -79,8 +93,8 @@ class AuthController {
 
             if (!isSame)
                 return response.status(400).send({
-                    error: 'Invalid user password',
-                    message: 'The old password is incorrect'
+                    error: 'Senha inválida',
+                    message: 'A senha atual está incorreta'
                 })
 
             user.password = password.new
@@ -88,13 +102,13 @@ class AuthController {
 
             return response.status(200).send({
                 success: true,
-                message: 'User updated successfully'
+                message: 'Usuário atualizado com sucesso'
             })
 
         } else
             return response.status(403).send({
-                error: 'Permision denied',
-                message: 'You are not allowed to change this record'
+                error: 'Permissão negada',
+                message: 'Você não tem permissão para alterar este registro'
             })
     }
 }

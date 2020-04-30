@@ -42,15 +42,23 @@ class MonitorController {
 
       if (!coordinator.course)
         return response.status(400).send({
-          error: 'Data inconsistency',
-          message: 'This coordinator does not have a course'
+          error: 'Inconsistência de dados',
+          message: 'Este coordenador não possui um curso'
         })
+
+      const errorMessages = {
+        'workload.required': 'A carga horária é obrigatória',
+        'workload.above': 'A carga horária mínima é 5 horas',
+        'workload.under': 'A carga horária máxima é 20 horas',
+        'student_id.required': 'É obrigatório informar um aluno',
+        'subject_id.required': 'É obrigatório informar uma disciplina'
+      }
 
       const validation = await validateAll(request.all(), {
         workload: 'required|integer|above:4|under:21',
         student_id: 'required|integer|not_equals:0',
         subject_id: 'required|integer|not_equals:0'
-      })
+      }, errorMessages)
 
       if (validation.fails())
         return response.status(400).send({
@@ -66,7 +74,7 @@ class MonitorController {
 
       if (!student || student.user.deleted)
         return response.status(404).send({
-          error: 'Student not found'
+          error: 'Aluno não encontrado'
         })
 
       const subject = await Subject.query()
@@ -76,12 +84,12 @@ class MonitorController {
 
       if (!subject)
         return response.status(404).send({
-          error: 'Subject not found'
+          error: 'Disciplina não encontrada'
         })
 
       if (!subject.active)
         return response.status(406).send({
-          error: 'This subject is disabled'
+          error: 'Esta disciplina está desativada'
         })
 
       const coord_course = await coordinator.course().fetch()
@@ -89,8 +97,8 @@ class MonitorController {
       if (student.course_id != subject.course_id
         || coord_course.id != student.course_id)
         return response.status(400).send({
-          error: 'Unmatched data',
-          message: 'Data from other courses is not allowed'
+          error: 'Dados não correspondentes',
+          message: 'Não são permitidos dados de outros cursos'
         })
 
       let semester
@@ -103,7 +111,7 @@ class MonitorController {
 
       if (oldMonitor && !oldMonitor.deleted)
         return response.status(406).send({
-          error: 'This student already has a monitor registration for this subject'
+          error: 'Este aluno já possui um cadastro de monitor para esta disciplina'
         })
       else if (oldMonitor)
         semester = oldMonitor.semester + 1
@@ -125,8 +133,8 @@ class MonitorController {
       return response.status(201).send(monitor)
     }
     return response.status(403).send({
-      error: 'Permision denied',
-      message: 'You are not allowed to create new monitors'
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para criar novos monitores'
     })
   }
 
@@ -148,7 +156,7 @@ class MonitorController {
 
     if (!monitor)
       return response.status(404).send({
-        error: 'Monitor not found'
+        error: 'Monitor não encontrado'
       })
 
     return response.status(200).send(monitor)
@@ -165,8 +173,8 @@ class MonitorController {
 
       if (!coordinator.course)
         return response.status(400).send({
-          error: 'Data inconsistency',
-          message: 'This coordinator does not have a course'
+          error: 'Inconsistência de dados',
+          message: 'Este coordenador não possui um curso'
         })
 
       const monitor = await Monitor.query()
@@ -177,7 +185,7 @@ class MonitorController {
 
       if (!monitor)
         return response.status(404).send({
-          error: 'Monitor not found'
+          error: 'Monitor não encontrado'
         })
 
       const coord_course = await coordinator.course().fetch()
@@ -203,8 +211,8 @@ class MonitorController {
       }
     }
     return response.status(403).send({
-      error: 'Permision denied',
-      message: 'You are not allowed to delete this record'
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para excluir este registro'
     })
   }
 }
