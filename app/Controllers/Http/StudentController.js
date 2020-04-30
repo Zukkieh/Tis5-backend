@@ -39,6 +39,24 @@ class StudentController {
 
   async store({ request, response }) {
 
+    const errorMessages = {
+      'person_code.required': 'O código de pessoa é obrigatório',
+      'person_code.unique': 'Este código de pessoa já está cadastrado',
+      'name.required': 'O nome é obrigatório',
+      'name.min': 'O nome deve possuir no mínimo 3 caracteres',
+      'email.required': 'O email é obrigatório',
+      'email.email': 'Formato de email inválido',
+      'email.unique': 'Este email já está cadastrado',
+      'password.required': 'A senha é obrigatória',
+      'password.min': 'A senha deve possuir no mínimo 6 caracteres',
+      'registration.required': 'O código de matrícula é obrigatório',
+      'registration.unique': 'Este código de matrícula já está cadastrado',
+      'phone.required': 'O telefone é obrigatório',
+      'phone.min': 'O telefone deve possuir no mínimo 11 dígitos',
+      'phone.unique': 'Este telefone já está cadastrado',
+      'course_id.required': 'É obrigatório informar um curso'
+    }
+
     const validation = await validateAll(request.all(), {
       person_code: 'required|unique:users',
       name: 'required|min:3',
@@ -47,7 +65,7 @@ class StudentController {
       registration: 'required|unique:students',
       phone: 'required|min:11|unique:students',
       course_id: 'required|integer|not_equals:0'
-    })
+    }, errorMessages)
 
     if (validation.fails())
       return response.status(400).send({
@@ -69,7 +87,7 @@ class StudentController {
 
     } else
       return response.status(404).send({
-        error: 'Course not found'
+        error: 'Curso não encontrado'
       })
   }
 
@@ -96,7 +114,7 @@ class StudentController {
 
     if (!student)
       return response.status(404).send({
-        error: 'Student not found'
+        error: 'Aluno não encontrado'
       })
 
     return response.status(200).send(student)
@@ -110,15 +128,19 @@ class StudentController {
 
     if (!student)
       return response.status(404).send({
-        error: 'Student not found'
+        error: 'Aluno não encontrado'
       })
 
     if (!auth.user.type || auth.user.id == student.user_id) {
 
+      const errorMessages = {
+        'phone.min': 'O telefone deve possuir no mínimo 11 dígitos'
+      }
+
       const validation = await validateAll(request.all(), {
         phone: 'string|min:11|required_without_all:course_id',
         course_id: 'integer|not_equals:0'
-      })
+      }, errorMessages)
 
       if (validation.fails())
         return response.status(400).send({
@@ -141,13 +163,13 @@ class StudentController {
 
           else
             return response.status(404).send({
-              error: 'Course not found'
+              error: 'Curso não encontrado'
             })
 
         } else
           return response.status(403).send({
-            error: 'Permision denied',
-            message: 'You are not allowed to change this registry data',
+            error: 'Permissão negada',
+            message: 'Você não tem permissão para alterar este dado do registro',
             field: 'course_id'
           })
       }
@@ -156,12 +178,12 @@ class StudentController {
 
       return response.status(200).send({
         success: true,
-        message: 'Student updated successfully'
+        message: 'Aluno atualizado com sucesso'
       })
     }
     return response.status(403).send({
-      error: 'Permision denied',
-      message: 'You are not allowed to change this record'
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para alterar este registro'
     })
   }
 }

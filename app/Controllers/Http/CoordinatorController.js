@@ -39,12 +39,24 @@ class CoordinatorController {
 
     if (!auth.user.type) {
 
+      const errorMessages = {
+        'person_code.required': 'O código de pessoa é obrigatório',
+        'person_code.unique': 'Este código de pessoa já está cadastrado',
+        'name.required': 'O nome é obrigatório',
+        'name.min': 'O nome deve possuir no mínimo 3 caracteres',
+        'email.required': 'O email é obrigatório',
+        'email.email': 'Formato de email inválido',
+        'email.unique': 'Este email já está cadastrado',
+        'password.required': 'A senha é obrigatória',
+        'password.min': 'A senha deve possuir no mínimo 6 caracteres'
+      }
+
       const validation = await validateAll(request.all(), {
         person_code: 'required|unique:users',
         name: 'required|min:3',
         email: 'required|email|unique:users',
         password: 'required|min:6'
-      })
+      }, errorMessages)
 
       if (validation.fails())
         return response.status(400).send({
@@ -59,8 +71,8 @@ class CoordinatorController {
 
     } else
       return response.status(403).send({
-        error: 'Permision denied',
-        message: 'You are not allowed to create new coordinators'
+        error: 'Permissão negada',
+        message: 'Você não tem permissão para criar novos coordenadores'
       })
   }
 
@@ -83,7 +95,7 @@ class CoordinatorController {
 
     if (!coordinator)
       return response.status(404).send({
-        error: 'Coordinator not found'
+        error: 'Coordenador não encontrado'
       })
 
     return response.status(200).send(coordinator)

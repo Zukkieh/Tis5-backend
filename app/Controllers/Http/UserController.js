@@ -24,15 +24,15 @@ class UserController {
 
             if (!user)
                 return response.status(404).send({
-                    error: 'User not found'
+                    error: 'Usuário não encontrado'
                 })
 
             return response.status(200).send(user)
 
         } else
             return response.status(403).send({
-                error: 'Permision denied',
-                message: 'you are not allowed to access this data'
+                error: 'Permissão negada',
+                message: 'Você não tem permissão para acessar estes dados'
             })
     }
 
@@ -40,11 +40,17 @@ class UserController {
 
         if (!auth.user.type) {
 
+            const errorMessages = {
+                'name.min': 'O nome deve possuir no mínimo 3 caracteres',
+                'password.min': 'A senha deve possuir no mínimo 6 caracteres',
+                'type.in': 'Tipo de usuário inválido'
+            }
+
             const validation = await validateAll(request.all(), {
                 name: 'string|min:3|required_without_all:password,type',
                 password: 'string|min:6|required_without_all:name,type',
                 type: 'string|in:Aluno(a),Coordenador(a)|required_without_all:name,password'
-            })
+            }, errorMessages)
 
             if (validation.fails())
                 return response.status(400).send({
@@ -68,13 +74,13 @@ class UserController {
 
             return response.status(200).send({
                 success: true,
-                message: 'User updated successfully'
+                message: 'Usuário atualizado com sucesso'
             })
 
         } else
             return response.status(403).send({
-                error: 'Permision denied',
-                message: 'You are not allowed to change this record'
+                error: 'Permissão negada',
+                message: 'Você não tem permissão para alterar este registro'
             })
     }
 
@@ -88,12 +94,12 @@ class UserController {
 
             if (!user)
                 return response.status(404).send({
-                    error: 'User not found'
+                    error: 'Usuário não encontrado'
                 })
 
             if (user.deleted)
                 return response.status(400).send({
-                    error: 'This user has already been deleted'
+                    error: 'Este usuário já foi excluído'
                 })
 
             user.deleted = true
@@ -103,8 +109,8 @@ class UserController {
 
         } else
             return response.status(403).send({
-                error: 'Permision denied',
-                message: 'You are not allowed to delete this record'
+                error: 'Permissão negada',
+                message: 'Você não tem permissão para excluir este registro'
             })
     }
 }

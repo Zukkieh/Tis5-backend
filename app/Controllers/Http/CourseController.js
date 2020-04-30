@@ -36,14 +36,20 @@ class CourseController {
 
       const enu = await Database
         .raw('SELECT unnest(enum_range(NULL::course_campus))::text AS campus')
-
       const campus_values = enu.rows.map(course => course.campus)
+
+      const errorMessages = {
+        'name.required': 'O nome é obrigatório',
+        'name.min': 'O nome deve possuir no mínimo 5 caracteres',
+        'campus.required': 'O campus é obrigatório',
+        'campus.in': 'Campus inválido'
+      }
 
       const validation = await validateAll(request.all(), {
         name: 'required|string|min:5',
         campus: `required|string|in:${campus_values}`,
         coordinator_id: 'integer|not_equals:0'
-      })
+      }, errorMessages)
 
       if (validation.fails())
         return response.status(400).send({
@@ -63,7 +69,7 @@ class CourseController {
 
         if (!coordinator || user.deleted || user.type != TYPE_VALUE)
           return response.status(404).send({
-            error: 'Coordinator not found'
+            error: 'Coordenador não encontrado'
           })
 
         const alreadyExists = await Course
@@ -71,8 +77,8 @@ class CourseController {
 
         if (alreadyExists)
           return response.status(400).send({
-            error: 'Coordinator unavailable',
-            message: 'This coordinator is already allocated to a course'
+            error: 'Coordenador indisponível',
+            message: 'Este coordenador já está alocado em um curso'
           })
       }
 
@@ -82,8 +88,8 @@ class CourseController {
 
     } else
       return response.status(403).send({
-        error: 'Permision denied',
-        message: 'You are not allowed to create new courses'
+        error: 'Permissão negada',
+        message: 'Você não tem permissão para criar novos cursos'
       })
   }
 
@@ -105,7 +111,7 @@ class CourseController {
 
     if (!course)
       return response.status(404).send({
-        error: 'Course not found'
+        error: 'Curso não encontrado'
       })
 
     return response.status(200).send(course)
@@ -121,13 +127,17 @@ class CourseController {
 
       if (!course)
         return response.status(404).send({
-          error: 'Course not found'
+          error: 'Curso não encontrado'
         })
+
+      const errorMessages = {
+        'name.min': 'O nome deve possuir no mínimo 5 caracteres',
+      }
 
       const validation = await validateAll(request.all(), {
         name: 'string|min:5|required_without_all:coordinator_id',
         coordinator_id: 'integer|not_equals:0|required_without_all:name'
-      })
+      }, errorMessages)
 
       if (validation.fails())
         return response.status(400).send({
@@ -149,7 +159,7 @@ class CourseController {
 
         if (!coordinator || user.deleted || user.type != TYPE_VALUE)
           return response.status(404).send({
-            error: 'Coordinator not found'
+            error: 'Coordenador não encontrado'
           })
 
         const alreadyExists = await Course
@@ -157,8 +167,8 @@ class CourseController {
 
         if (alreadyExists)
           return response.status(400).send({
-            error: 'Coordinator unavailable',
-            message: 'This coordinator is already allocated to a course'
+            error: 'Coordenador indisponível',
+            message: 'Este coordenador já está alocado em um curso'
           })
 
         course.coordinator_id = coordinator_id
@@ -168,13 +178,13 @@ class CourseController {
 
       return response.status(200).send({
         success: true,
-        message: 'Course updated successfully'
+        message: 'Curso atualizado com sucesso'
       })
 
     } else
       return response.status(403).send({
-        error: 'Permision denied',
-        message: 'You are not allowed to create new courses'
+        error: 'Permissão negada',
+        message: 'Você não tem permissão para atualizar este registro'
       })
   }
 }
