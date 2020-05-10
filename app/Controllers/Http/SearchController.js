@@ -5,20 +5,6 @@ const { validateAll } = use('Validator')
 
 class SearchController {
 
-    wordUpper(arrWords) {
-
-        const ignore = ['de', 'da', 'das', 'do', 'dos'];
-
-        arrWords = arrWords.split(' ')
-
-        for (let i in arrWords) {
-            if (ignore.indexOf(arrWords[i]) === -1) {
-                arrWords[i] = arrWords[i].charAt(0).toUpperCase() + arrWords[i].slice(1);
-            }
-        }
-        return arrWords;
-    }
-
     async coordinator({ request, response, auth }) {
 
         if (!auth.user.type) {
@@ -46,8 +32,8 @@ class SearchController {
                 .from('coordinators')
                 .innerJoin('users', 'users.id', 'coordinators.user_id')
                 .where('users.deleted', false)
-                .where(`users.${name ? 'name' : 'person_code'}`, `${name ? 'like' : '='}`,
-                    `${name ? '%' + this.wordUpper(name).join(' ') + '%' : person_code}`)
+                .where(`users.${name ? 'name' : 'person_code'}`, `${name ? 'ilike' : '='}`,
+                    `${name ? `%${name}%` : person_code}`)
 
             if (coordinators.length == 0)
                 return response.status(404).send({
