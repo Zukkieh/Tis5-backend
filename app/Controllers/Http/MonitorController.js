@@ -56,8 +56,8 @@ class MonitorController {
 
       const validation = await validateAll(request.all(), {
         workload: 'required|integer|above:4|under:21',
-        student_id: 'required|integer|not_equals:0',
-        subject_id: 'required|integer|not_equals:0'
+        student_id: 'required|integer|above:0',
+        subject_id: 'required|integer|above:0'
       }, errorMessages)
 
       if (validation.fails())
@@ -88,7 +88,7 @@ class MonitorController {
         })
 
       if (!subject.active)
-        return response.status(406).send({
+        return response.status(409).send({
           error: 'Esta disciplina está desativada'
         })
 
@@ -110,7 +110,7 @@ class MonitorController {
         .first()
 
       if (oldMonitor && !oldMonitor.deleted)
-        return response.status(406).send({
+        return response.status(409).send({
           error: 'Este aluno já possui um cadastro de monitor para esta disciplina'
         })
       else if (oldMonitor)

@@ -44,7 +44,11 @@ class AuthController {
             data = await user.coordinator().with('course').fetch()
 
         else if (user.type == 'Aluno(a)')
-            data = await user.student().with('course').fetch()
+            data = await user.student().with('course')
+                .with('monitoring', monitor => {
+                    monitor.select(['id', 'workload', 'semester', 'subject_id', 'student_id'])
+                        .where('deleted', false)
+                }).fetch()
 
         return response.status(200).send({
             token,

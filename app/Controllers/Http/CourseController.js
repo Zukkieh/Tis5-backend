@@ -48,7 +48,7 @@ class CourseController {
       const validation = await validateAll(request.all(), {
         name: 'required|string|min:5',
         campus: `required|string|in:${campus_values}`,
-        coordinator_id: 'integer|not_equals:0'
+        coordinator_id: 'integer|above:0'
       }, errorMessages)
 
       if (validation.fails())
@@ -136,7 +136,7 @@ class CourseController {
 
       const validation = await validateAll(request.all(), {
         name: 'string|min:5|required_without_all:coordinator_id',
-        coordinator_id: 'integer|not_equals:0|required_without_all:name'
+        coordinator_id: 'integer|above:0|required_without_all:name'
       }, errorMessages)
 
       if (validation.fails())

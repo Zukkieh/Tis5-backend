@@ -64,7 +64,7 @@ class StudentController {
       password: 'required|min:6',
       registration: 'required|unique:students',
       phone: 'required|min:11|unique:students',
-      course_id: 'required|integer|not_equals:0'
+      course_id: 'required|integer|above:0'
     }, errorMessages)
 
     if (validation.fails())
@@ -139,7 +139,7 @@ class StudentController {
 
       const validation = await validateAll(request.all(), {
         phone: 'string|min:11|required_without_all:course_id',
-        course_id: 'integer|not_equals:0'
+        course_id: 'integer|above:0'
       }, errorMessages)
 
       if (validation.fails())

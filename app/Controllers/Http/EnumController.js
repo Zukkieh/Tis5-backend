@@ -24,6 +24,13 @@ class EnumController {
 
         return enu.rows.map(subject => subject.shift)
     }
+
+    async schedule_day() {
+        const enu = await Database
+            .raw('SELECT unnest(enum_range(NULL::schedule_day))::text AS day')
+
+        return enu.rows.map(schedule => schedule.day)
+    }
 }
 
 module.exports = EnumController
