@@ -13,7 +13,7 @@ class Student extends Model {
         return this.belongsTo('App/Models/Course')
     }
 
-    monitors() {
+    monitoring() {
         return this.hasMany('App/Models/Monitor')
     }
 }
