@@ -19,13 +19,15 @@ class MonitorController {
       .select([
         'id',
         'workload',
-        'student_id',
-        'subject_id',
-        'semester'
+        'semester',
+        'student_id'
       ])
       .where('subject_id', params.subject_id)
       .where('deleted', false)
-      .with('student')
+      .with('student', s => {
+        s.select(['id', 'phone', 'registration', 'user_id'])
+        s.with('user', u => u.select(['id', 'name', 'person_code']))
+      })
       .paginate(page, limit)
 
     return response.status(200).send(monitors)
