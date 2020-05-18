@@ -27,7 +27,11 @@ class ScheduleController {
 
     const totalDuration = ScheduleHelper.totalDuration(schedules)
 
-    return response.status(200).send({ schedules, totalDuration })
+    return response.status(200).send({
+      schedules,
+      totalDuration,
+      workload: monitor.workload
+    })
   }
 
   async store({ params, request, response, auth }) {
