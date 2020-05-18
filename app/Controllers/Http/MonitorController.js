@@ -31,6 +31,31 @@ class MonitorController {
     return response.status(200).send(monitors)
   }
 
+  async _index({ params, response }) {
+
+    const student = await Student.query()
+      .where('id', params.student_id)
+      .first()
+
+    if (!student)
+      return response.status(404).send({
+        error: 'Aluno não encontrado'
+      })
+
+    if (student.is_monitor) {
+      const monitoring = await student.monitoring()
+        .select(['id', 'workload', 'student_id', 'subject_id'])
+        .with('subject', s => s.select(['id', 'name', 'shift']))
+        .where('deleted', false)
+        .fetch()
+
+      return response.status(200).send(monitoring)
+    } else
+      return response.status(409).send({
+        error: 'Este aluno não é um monitor'
+      })
+  }
+
   async store({ request, response, auth }) {
 
     if (auth.user.type == COORD) {

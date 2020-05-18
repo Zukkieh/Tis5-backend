@@ -29,7 +29,7 @@ function sumDuration(schedules) {
 
 function totalDuration(schedules) {
     const sumDurations = sumDuration(schedules)
-    return convertToString(sumDurations)
+    return (sumDurations / 60)
 }
 
 function calculateDuration(start, end) {
