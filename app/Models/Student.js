@@ -16,6 +16,10 @@ class Student extends Model {
     monitoring() {
         return this.hasMany('App/Models/Monitor')
     }
+
+    requests() {
+        return this.hasMany('App/Models/Request')
+    }
 }
 
 module.exports = Student
