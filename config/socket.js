@@ -17,7 +17,7 @@ module.exports = {
   | The base path on which the websocket server will accept connections.
   |
   */
-  path: '/monitoring',
+  path: '/adonis-ws',
 
   /*
   |--------------------------------------------------------------------------
