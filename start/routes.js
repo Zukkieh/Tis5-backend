@@ -41,4 +41,6 @@ Route.group(() => {
   Route.get('monitor/:monitor_id/schedule', 'ScheduleController.index').as('schedule.index')
   Route.post('monitor/:monitor_id/schedule', 'ScheduleController.store').as('schedule.store')
   Route.delete('schedule/:id', 'ScheduleController.destroy').as('schedule.destroy')
+  Route.get('student/:student_id/request', 'RequestController.index').as('request.index')
+  Route.get('monitor/:monitor_id/request', 'RequestController._index').as('request._index')
 }).middleware('auth')

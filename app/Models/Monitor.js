@@ -16,6 +16,10 @@ class Monitor extends Model {
     schedules() {
         return this.hasMany('App/Models/Schedule')
     }
+
+    requests() {
+        return this.hasMany('App/Models/Request')
+    }
 }
 
 module.exports = Monitor
