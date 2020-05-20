@@ -97,7 +97,7 @@ class RequestController {
     const authUser = await User.find(auth.user.id)
     const authStudent = await authUser.student().fetch()
 
-    const request = await Request.create({
+    const newRequest = await Request.create({
       message,
       status: 'Pendente',
       schedule_id,
@@ -120,7 +120,7 @@ class RequestController {
         })
       })
       .with('schedule')
-      .where('id', request.id)
+      .where('id', newRequest.id)
       .first()
 
     const topic = Ws.getChannel('scheduling').topic('request')
@@ -157,14 +157,14 @@ class RequestController {
 
   async update({ params, request, response, auth }) {
 
-    const { confirmed, response } = request.all()
+    const { confirmed, response: monitorResponse } = request.all()
 
-    const request = await Request.find(params.id)
+    const oldRequest = await Request.find(params.id)
 
-    request.response = response
-    request.status = confirmed ? 'Confirmada' : 'Recusada'
+    oldRequest.response = monitorResponse
+    oldRequest.status = confirmed ? 'Confirmada' : 'Recusada'
 
-    await request.save()
+    await oldRequest.save()
 
     const data = await Request.query()
       .select(['id', 'student_id', 'monitor_id', 'schedule_id',
@@ -181,7 +181,7 @@ class RequestController {
         })
       })
       .with('schedule')
-      .where('id', request.id)
+      .where('id', oldRequest.id)
       .first()
 
     const topic = Ws.getChannel('scheduling').topic('response')
