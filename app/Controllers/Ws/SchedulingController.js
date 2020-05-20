@@ -12,11 +12,15 @@ class SchedulingController {
     this.socket = socket
     this.request = request
     this.auth = auth
-
-    this.connect()
   }
 
-  * connect() {
+  * onOpen() {
+    const authUser = yield User.find(this.auth.user.id)
+    authUser.socket_id = this.socket.id
+    yield authUser.save()
+  }
+
+  * onConnect() {
     const authUser = yield User.find(this.auth.user.id)
     authUser.socket_id = this.socket.id
     yield authUser.save()
