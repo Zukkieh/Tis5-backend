@@ -31,4 +31,7 @@ Ws.channel('scheduling', async ({ socket, auth }) => {
 
     socket.emit('config', 'salvei o socket_id no banco')
 
+    socket.broadcastToAll('request', 'verificando tópico request')
+    socket.broadcastToAll('response', 'verificando tópico response')
+
 }).middleware(['auth'])
