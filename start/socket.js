@@ -14,5 +14,21 @@
 */
 
 const Ws = use('Ws')
+const User = use('App/Models/User')
 
-Ws.channel('scheduling', 'SchedulingController').middleware(['auth'])
+Ws.channel('scheduling', async ({ socket, auth }) => {
+
+    socket.emit('config', socket.id)
+    socket.emit('config', auth.user.id)
+
+    const user = await User.find(auth.user.id)
+
+    socket.emit('config', user)
+
+    user.socket_id = socket.id
+
+    await user.save()
+
+    socket.emit('config', 'salvei o socket_id no banco')
+
+}).middleware(['auth'])

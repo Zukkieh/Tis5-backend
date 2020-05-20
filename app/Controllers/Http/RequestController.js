@@ -1,8 +1,12 @@
 'use strict'
 
+const Ws = use('Ws')
+
 const Request = use('App/Models/Request')
+const User = use('App//Models/User')
 const Student = use('App/Models/Student')
 const Monitor = use('App/Models/Monitor')
+const Schedule = use('App/Models/Schedule')
 
 class RequestController {
 
@@ -85,6 +89,49 @@ class RequestController {
       })
   }
 
+  async store({ request, response, auth }) {
+
+    const { schedule_id, message } = request.all()
+
+    const schedule = await Schedule.find(schedule_id)
+    const authUser = await User.find(auth.user.id)
+    const authStudent = await authUser.student().fetch()
+
+    const request = await Request.create({
+      message,
+      status: 'Pendente',
+      schedule_id,
+      student_id: authStudent.id,
+      monitor_id: schedule.monitor_id
+    })
+
+    const data = await Request.query()
+      .select(['id', 'student_id', 'monitor_id', 'schedule_id',
+        'status', 'message'])
+      .with('student', s => {
+        s.select(['id', 'user_id'])
+        s.with('user', u => u.select(['name']))
+      })
+      .with('monitor', m => {
+        m.select(['id', 'student_id'])
+        m.with('student', s => {
+          s.select(['id', 'user_id'])
+          s.with('user', u => u.select(['name']))
+        })
+      })
+      .with('schedule')
+      .where('id', request.id)
+      .first()
+
+    const topic = Ws.getChannel('scheduling').topic('request')
+
+    if (topic) {
+      topic.broadcastToAll('request', data)
+    }
+
+    return response.status(201).send(data)
+  }
+
   async show({ params, response, auth }) {
 
     const request = await Request.query()
@@ -106,6 +153,44 @@ class RequestController {
       .first()
 
     return response.status(200).send(request)
+  }
+
+  async update({ params, request, response, auth }) {
+
+    const { confirmed, response } = request.all()
+
+    const request = await Request.find(params.id)
+
+    request.response = response
+    request.status = confirmed ? 'Confirmada' : 'Recusada'
+
+    await request.save()
+
+    const data = await Request.query()
+      .select(['id', 'student_id', 'monitor_id', 'schedule_id',
+        'status', 'message', 'response'])
+      .with('student', s => {
+        s.select(['id', 'user_id'])
+        s.with('user', u => u.select(['name']))
+      })
+      .with('monitor', m => {
+        m.select(['id', 'student_id'])
+        m.with('student', s => {
+          s.select(['id', 'user_id'])
+          s.with('user', u => u.select(['name']))
+        })
+      })
+      .with('schedule')
+      .where('id', request.id)
+      .first()
+
+    const topic = Ws.getChannel('scheduling').topic('response')
+
+    if (topic) {
+      topic.broadcastToAll('response', data)
+    }
+
+    return response.status(200).send(data)
   }
 
   async destroy({ params, response, auth }) {
