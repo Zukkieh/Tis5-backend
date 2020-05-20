@@ -23,79 +23,96 @@ class SchedulingController {
   }
 
   async onRequest(data) {
-    const schedule = await Schedule.find(data.schedule_id)
 
-    const monitor = await Monitor.find(schedule.monitor_id)
-    const student = await monitor.student().fetch()
-    const user = await student.user().fetch()
+    try {
 
-    const authUser = await User.find(this.auth.user.id)
+      const schedule = await Schedule.find(data.schedule_id)
 
-    const created = await Request.create({
-      message: data.message,
-      status: 'Pendente',
-      schedule_id: data.schedule_id,
-      student_id: this.auth.user.id,
-      monitor_id: schedule.monitor_id
-    })
+      const monitor = await Monitor.find(schedule.monitor_id)
+      const student = await monitor.student().fetch()
+      const user = await student.user().fetch()
 
-    const request = await Request.query()
-      .select(['id', 'student_id', 'monitor_id', 'schedule_id',
-        'status', 'message'])
-      .with('student', s => {
-        s.select(['id', 'user_id'])
-        s.with('user', u => u.select(['name']))
+      const authUser = await User.find(this.auth.user.id)
+      const authStudent = await authUser.student().fetch()
+
+      const created = await Request.create({
+        message: data.message,
+        status: 'Pendente',
+        schedule_id: data.schedule_id,
+        student_id: authStudent.id,
+        monitor_id: schedule.monitor_id
       })
-      .with('monitor', m => {
-        m.select(['id', 'student_id'])
-        m.with('student', s => {
+
+      const request = await Request.query()
+        .select(['id', 'student_id', 'monitor_id', 'schedule_id',
+          'status', 'message'])
+        .with('student', s => {
           s.select(['id', 'user_id'])
           s.with('user', u => u.select(['name']))
         })
-      })
-      .with('schedule')
-      .where('id', created.id)
-      .first()
+        .with('monitor', m => {
+          m.select(['id', 'student_id'])
+          m.with('student', s => {
+            s.select(['id', 'user_id'])
+            s.with('user', u => u.select(['name']))
+          })
+        })
+        .with('schedule')
+        .where('id', created.id)
+        .first()
 
-    const recipients = [authUser.socket_id, user.socket_id]
+      const recipients = [authUser.socket_id, user.socket_id]
 
-    this.socket.to([...recipients]).emit('request', request)
+      this.socket.to([...recipients]).emit('request', request)
+
+    } catch (error) {
+      console.error(error)
+      this.socket.to([authUser.socket_id]).emit('error', error)
+    }
   }
 
   async onResponse(data) {
-    const request = await Request.find(data.request_id)
 
-    const student = await Student.find(request.student_id)
-    const user = await student.user().fetch()
+    try {
 
-    const authUser = await User.find(this.auth.user.id)
+      const request = await Request.find(data.request_id)
 
-    request.response = data.response
-    request.status = data.confirmed ? 'Confirmada' : 'Recusada'
+      const student = await Student.find(request.student_id)
+      const user = await student.user().fetch()
 
-    await request.save()
+      const authUser = await User.find(this.auth.user.id)
 
-    const response = await Request.query()
-      .select(['id', 'student_id', 'monitor_id', 'schedule_id',
-        'status', 'message', 'response'])
-      .with('student', s => {
-        s.select(['id', 'user_id'])
-        s.with('user', u => u.select(['name']))
-      })
-      .with('monitor', m => {
-        m.select(['id', 'student_id'])
-        m.with('student', s => {
+      request.response = data.response
+      request.status = data.confirmed ? 'Confirmada' : 'Recusada'
+
+      await request.save()
+
+      const response = await Request.query()
+        .select(['id', 'student_id', 'monitor_id', 'schedule_id',
+          'status', 'message', 'response'])
+        .with('student', s => {
           s.select(['id', 'user_id'])
           s.with('user', u => u.select(['name']))
         })
-      })
-      .with('schedule')
-      .where('id', request.id)
-      .first()
+        .with('monitor', m => {
+          m.select(['id', 'student_id'])
+          m.with('student', s => {
+            s.select(['id', 'user_id'])
+            s.with('user', u => u.select(['name']))
+          })
+        })
+        .with('schedule')
+        .where('id', request.id)
+        .first()
 
-    const recipients = [authUser.socket_id, user.socket_id]
+      const recipients = [authUser.socket_id, user.socket_id]
 
-    this.socket.to([...recipients]).emit('response', response)
+      this.socket.to([...recipients]).emit('response', response)
+
+    } catch (error) {
+      console.error(error)
+      this.socket.to([authUser.socket_id]).emit('error', error)
+    }
   }
 
   async onClose() {
