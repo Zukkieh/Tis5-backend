@@ -126,7 +126,7 @@ class RequestController {
     const topic = Ws.getChannel('scheduling').topic('request')
 
     if (topic) {
-      topic.broadcastToAll('request', data)
+      topic.emitTo('request', data, [authUser.socket_id])
     }
 
     return response.status(201).send(data)
@@ -161,6 +161,8 @@ class RequestController {
 
     const oldRequest = await Request.find(params.id)
 
+    const authUser = await User.find(auth.user.id)
+
     oldRequest.response = monitorResponse
     oldRequest.status = confirmed ? 'Confirmada' : 'Recusada'
 
@@ -187,7 +189,7 @@ class RequestController {
     const topic = Ws.getChannel('scheduling').topic('response')
 
     if (topic) {
-      topic.broadcastToAll('response', data)
+      topic.emitTo('response', data, [authUser.socket_id])
     }
 
     return response.status(200).send(data)
