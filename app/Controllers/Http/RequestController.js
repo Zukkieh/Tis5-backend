@@ -1,12 +1,15 @@
 'use strict'
 
 const Ws = use('Ws')
+const { validateAll } = use('Validator')
 
 const Request = use('App/Models/Request')
 const User = use('App//Models/User')
 const Student = use('App/Models/Student')
 const Monitor = use('App/Models/Monitor')
 const Schedule = use('App/Models/Schedule')
+
+const ALN = 'Aluno(a)'
 
 class RequestController {
 
@@ -19,34 +22,45 @@ class RequestController {
         error: 'Aluno não encontrado'
       })
 
-    const user = await student.user().fetch()
+    const stud_user = await student.user().fetch()
 
-    if (auth.user.id == user.id) {
+    if (auth.user.id == stud_user.id) {
 
       const requests = await Request.query()
-        .select(['id', 'student_id', 'monitor_id', 'schedule_id', 'status'])
         .with('student', s => {
-          s.select(['id', 'user_id'])
-          s.with('user', u => u.select(['name']))
+          s.select(['id', 'phone', 'user_id'])
+          s.with('user', u => {
+            u.select(['id', 'name'])
+          })
         })
         .with('monitor', m => {
           m.select(['id', 'student_id'])
           m.with('student', s => {
-            s.select(['id', 'user_id'])
-            s.with('user', u => u.select(['name']))
+            s.select(['id', 'phone', 'user_id'])
+            s.with('user', u => {
+              u.select(['id', 'name'])
+            })
           })
         })
-        .with('schedule')
+        .with('schedule', s => {
+          s.select(['id', 'day', 'monitor_id'])
+          s.with('monitor', m => {
+            m.select('id', 'subject_id')
+            m.with('subject', s => {
+              s.select(['id', 'name', 'shift'])
+            })
+          })
+        })
         .where('student_id', student.id)
         .fetch()
 
       return response.status(200).send(requests)
 
-    } else
-      return response.status(403).send({
-        error: 'Permissão negada',
-        message: 'Você não tem permissão para acessar estes dados'
-      })
+    }
+    return response.status(403).send({
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para acessar estes dados'
+    })
   }
 
   async _index({ params, response, auth }) {
@@ -58,152 +72,233 @@ class RequestController {
         error: 'Monitor não encontrado'
       })
 
-    const student = await monitor.student().fetch()
-    const user = await student.user().fetch()
+    const mon_student = await monitor.student().fetch()
+    const mon_user = await mon_student.user().fetch()
 
-    if (auth.user.id == user.id) {
+    if (auth.user.id == mon_user.id) {
 
       const requests = await Request.query()
-        .select(['id', 'student_id', 'monitor_id', 'schedule_id', 'status'])
         .with('student', s => {
-          s.select(['id', 'user_id'])
-          s.with('user', u => u.select(['name']))
+          s.select(['id', 'phone', 'user_id'])
+          s.with('user', u => {
+            u.select(['id', 'name'])
+          })
         })
         .with('monitor', m => {
           m.select(['id', 'student_id'])
           m.with('student', s => {
-            s.select(['id', 'user_id'])
-            s.with('user', u => u.select(['name']))
+            s.select(['id', 'phone', 'user_id'])
+            s.with('user', u => {
+              u.select(['id', 'name'])
+            })
           })
         })
-        .with('schedule')
+        .with('schedule', s => {
+          s.select(['id', 'day', 'monitor_id'])
+          s.with('monitor', m => {
+            m.select('id', 'subject_id')
+            m.with('subject', s => {
+              s.select(['id', 'name', 'shift'])
+            })
+          })
+        })
         .where('monitor_id', monitor.id)
         .fetch()
 
       return response.status(200).send(requests)
 
-    } else
-      return response.status(403).send({
-        error: 'Permissão negada',
-        message: 'Você não tem permissão para acessar estes dados'
-      })
+    }
+    return response.status(403).send({
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para acessar estes dados'
+    })
   }
 
   async store({ request, response, auth }) {
 
-    const { schedule_id, message } = request.all()
+    if (auth.user.type == ALN) {
 
-    const schedule = await Schedule.find(schedule_id)
-    const authUser = await User.find(auth.user.id)
-    const authStudent = await authUser.student().fetch()
+      const errorMessages = {
+        'schedule_id.required': 'O ID do horário é obrigatório'
+      }
 
-    const newRequest = await Request.create({
-      message,
-      status: 'Pendente',
-      schedule_id,
-      student_id: authStudent.id,
-      monitor_id: schedule.monitor_id
-    })
+      const validation = await validateAll(request.all(), {
+        schedule_id: 'required|integer|above:0',
+        message: 'string'
+      }, errorMessages)
 
-    const data = await Request.query()
-      .select(['id', 'student_id', 'monitor_id', 'schedule_id',
-        'status', 'message'])
-      .with('student', s => {
-        s.select(['id', 'user_id'])
-        s.with('user', u => u.select(['name']))
-      })
-      .with('monitor', m => {
-        m.select(['id', 'student_id'])
-        m.with('student', s => {
-          s.select(['id', 'user_id'])
-          s.with('user', u => u.select(['name']))
+      if (validation.fails())
+        return response.status(400).send({
+          errors: validation.messages()
         })
+
+      const { schedule_id, message } = request.all()
+
+      const schedule = await Schedule.find(schedule_id)
+
+      if (!schedule)
+        return response.status(404).send({
+          error: 'Horário não encontrado'
+        })
+
+      const authUser = await User.find(auth.user.id)
+      const authStudent = await authUser.student().fetch()
+
+      const newRequest = await Request.create({
+        message,
+        status: 'Pendente',
+        schedule_id,
+        student_id: authStudent.id,
+        monitor_id: schedule.monitor_id
       })
-      .with('schedule')
-      .where('id', newRequest.id)
-      .first()
 
-    const topic = Ws.getChannel('scheduling').topic('request')
+      const data = await Request.query()
+        .with('student', s => {
+          s.select(['id', 'phone', 'user_id'])
+          s.with('user', u => {
+            u.select(['id', 'name'])
+          })
+        })
+        .with('monitor', m => {
+          m.select(['id', 'student_id'])
+          m.with('student', s => {
+            s.select(['id', 'phone', 'user_id'])
+            s.with('user', u => {
+              u.select(['id', 'name'])
+            })
+          })
+        })
+        .with('schedule', s => {
+          s.select(['id', 'day', 'monitor_id'])
+          s.with('monitor', m => {
+            m.select('id', 'subject_id')
+            m.with('subject', s => {
+              s.select(['id', 'name', 'shift'])
+            })
+          })
+        })
+        .where('id', newRequest.id)
+        .first()
 
-    if (topic) {
-      topic.emitTo('request', data, [authUser.socket_id])
+      const topic = Ws.getChannel('scheduling').topic('request')
+
+      if (topic) {
+        topic.broadcastToAll('request', data)
+      }
+
+      return response.status(201).send(data)
+
     }
-
-    return response.status(201).send(data)
-  }
-
-  async show({ params, response, auth }) {
-
-    const request = await Request.query()
-      .select(['id', 'student_id', 'monitor_id', 'schedule_id',
-        'status', 'message', 'response'])
-      .with('student', s => {
-        s.select(['id', 'user_id'])
-        s.with('user', u => u.select(['name']))
-      })
-      .with('monitor', m => {
-        m.select(['id', 'student_id'])
-        m.with('student', s => {
-          s.select(['id', 'user_id'])
-          s.with('user', u => u.select(['name']))
-        })
-      })
-      .with('schedule')
-      .where('id', params.id)
-      .first()
-
-    return response.status(200).send(request)
+    return response.status(403).send({
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para criar novas solicitações'
+    })
   }
 
   async update({ params, request, response, auth }) {
 
-    const { confirmed, response: monitorResponse } = request.all()
+    if (auth.user.type == ALN) {
 
-    const oldRequest = await Request.find(params.id)
+      const errorMessages = {
+        'confirmed.required': 'A resposta da confirmação é obrigatória'
+      }
 
-    const authUser = await User.find(auth.user.id)
+      const validation = await validateAll(request.all(), {
+        confirmed: 'required|boolean',
+        response: 'string'
+      }, errorMessages)
 
-    oldRequest.response = monitorResponse
-    oldRequest.status = confirmed ? 'Confirmada' : 'Recusada'
-
-    await oldRequest.save()
-
-    const data = await Request.query()
-      .select(['id', 'student_id', 'monitor_id', 'schedule_id',
-        'status', 'message', 'response'])
-      .with('student', s => {
-        s.select(['id', 'user_id'])
-        s.with('user', u => u.select(['name']))
-      })
-      .with('monitor', m => {
-        m.select(['id', 'student_id'])
-        m.with('student', s => {
-          s.select(['id', 'user_id'])
-          s.with('user', u => u.select(['name']))
+      if (validation.fails())
+        return response.status(400).send({
+          errors: validation.messages()
         })
-      })
-      .with('schedule')
-      .where('id', oldRequest.id)
-      .first()
 
-    const topic = Ws.getChannel('scheduling').topic('response')
+      const oldRequest = await Request.find(params.id)
+      const req_monitor = await oldRequest.monitor().fetch()
+      const mon_student = await req_monitor.student().fetch()
 
-    if (topic) {
-      topic.emitTo('response', data, [authUser.socket_id])
+      if (mon_student.user_id == auth.user.id) {
+
+        const { confirmed, response: monitorResponse } = request.all()
+
+        oldRequest.response = monitorResponse
+        oldRequest.status = confirmed ? 'Confirmada' : 'Recusada'
+
+        await oldRequest.save()
+
+        const data = await Request.query()
+          .with('student', s => {
+            s.select(['id', 'phone', 'user_id'])
+            s.with('user', u => {
+              u.select(['id', 'name'])
+            })
+          })
+          .with('monitor', m => {
+            m.select(['id', 'student_id'])
+            m.with('student', s => {
+              s.select(['id', 'phone', 'user_id'])
+              s.with('user', u => {
+                u.select(['id', 'name'])
+              })
+            })
+          })
+          .with('schedule', s => {
+            s.select(['id', 'day', 'monitor_id'])
+            s.with('monitor', m => {
+              m.select('id', 'subject_id')
+              m.with('subject', s => {
+                s.select(['id', 'name', 'shift'])
+              })
+            })
+          })
+          .where('id', oldRequest.id)
+          .first()
+
+        const topic = Ws.getChannel('scheduling').topic('response')
+
+        if (topic) {
+          topic.broadcastToAll('response', data)
+        }
+
+        return response.status(200).send(data)
+      }
     }
-
-    return response.status(200).send(data)
+    return response.status(403).send({
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para alterar esta solicitação'
+    })
   }
 
   async destroy({ params, response, auth }) {
 
-    const request = await Request.query()
-      .where('id', params.id)
-      .first()
+    if (auth.user.type == ALN) {
 
-    await request.delete()
+      const authUser = await User.find(auth.user.id)
+      const authStudent = await authUser.student().fetch()
 
-    return response.status(204).send()
+      const oldRequest = await Request.find(params.id)
+
+      if (!oldRequest)
+        return response.status(404).send({
+          error: 'Horário não encontrado'
+        })
+
+      if (oldRequest.student_id == authStudent.id) {
+
+        const request = await Request.query()
+          .where('id', params.id)
+          .first()
+
+        await request.delete()
+
+        return response.status(204).send()
+      }
+    }
+    return response.status(403).send({
+      error: 'Permissão negada',
+      message: 'Você não tem permissão para excluir esta solicitação'
+    })
   }
 }
+
 module.exports = RequestController
