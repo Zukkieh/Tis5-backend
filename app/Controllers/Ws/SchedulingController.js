@@ -14,18 +14,6 @@ class SchedulingController {
     this.auth = auth
   }
 
-  * onOpen() {
-    const authUser = yield User.find(this.auth.user.id)
-    authUser.socket_id = this.socket.id
-    yield authUser.save()
-  }
-
-  * onConnect() {
-    const authUser = yield User.find(this.auth.user.id)
-    authUser.socket_id = this.socket.id
-    yield authUser.save()
-  }
-
   * onRequest(data) {
 
     try {
@@ -65,13 +53,11 @@ class SchedulingController {
         .where('id', created.id)
         .first()
 
-      const recipients = [authUser.socket_id, user.socket_id]
-
-      this.socket.to([...recipients]).emit('request', request)
+      this.socket.broadcastToAll('request', request)
 
     } catch (error) {
       console.error(error)
-      this.socket.to([authUser.socket_id]).emit('error', error)
+      this.socket.emit('error', error)
     }
   }
 
