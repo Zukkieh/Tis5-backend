@@ -43,7 +43,7 @@ class RequestController {
           })
         })
         .with('schedule', s => {
-          s.select(['id', 'day', 'monitor_id'])
+          s.select(['id', 'day', 'start', 'end', 'monitor_id'])
           s.with('monitor', m => {
             m.select('id', 'subject_id')
             m.with('subject', s => {
@@ -94,7 +94,7 @@ class RequestController {
           })
         })
         .with('schedule', s => {
-          s.select(['id', 'day', 'monitor_id'])
+          s.select(['id', 'day', 'start', 'end', 'monitor_id'])
           s.with('monitor', m => {
             m.select('id', 'subject_id')
             m.with('subject', s => {
@@ -169,7 +169,7 @@ class RequestController {
           })
         })
         .with('schedule', s => {
-          s.select(['id', 'day', 'monitor_id'])
+          s.select(['id', 'day', 'start', 'end', 'monitor_id'])
           s.with('monitor', m => {
             m.select('id', 'subject_id')
             m.with('subject', s => {
@@ -243,7 +243,7 @@ class RequestController {
             })
           })
           .with('schedule', s => {
-            s.select(['id', 'day', 'monitor_id'])
+            s.select(['id', 'day', 'start', 'end', 'monitor_id'])
             s.with('monitor', m => {
               m.select('id', 'subject_id')
               m.with('subject', s => {
