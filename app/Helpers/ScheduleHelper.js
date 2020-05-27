@@ -1,10 +1,16 @@
 'use strict'
 
-function convertToMinutes(timeInText) {
+function convertToNumbers(timeInText) {
     let [hours, minutes] = timeInText.split(':')
 
     hours = parseInt(hours)
     minutes = parseInt(minutes)
+
+    return [hours, minutes]
+}
+
+function convertToMinutes(timeInText) {
+    const [hours, minutes] = convertToNumbers(timeInText)
 
     const timeInMinutes = (hours * 60 + minutes)
 
@@ -42,6 +48,23 @@ function calculateDuration(start, end) {
         inMinutes: durationInMinutes,
         inText: convertToString(durationInMinutes)
     }
+}
+
+function validateInterval(day, start, end) {
+    const [sHours, sMinutes] = convertToNumbers(start)
+    const [eHours, eMinutes] = convertToNumbers(end)
+
+    let startValid, endValid
+
+    if (day == 'Sábado') {
+        startValid = sHours >= 7
+        endValid = eHours < 16 || (eHours == 16 && eMinutes <= 30)
+    } else {
+        startValid = (sHours == 11 && sMinutes >= 30) || sHours > 12
+        endValid = eHours < 19 || (eHours == 19 && eMinutes == 0)
+    }
+
+    return (startValid && endValid)
 }
 
 function validate(workload, schedules, newSchedule) {
@@ -82,7 +105,9 @@ function validate(workload, schedules, newSchedule) {
 }
 
 module.exports = {
+    convertToNumbers,
     totalDuration,
     calculateDuration,
+    validateInterval,
     validate
 }

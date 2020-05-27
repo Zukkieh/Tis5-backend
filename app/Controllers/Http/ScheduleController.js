@@ -86,19 +86,33 @@ class ScheduleController {
 
         const mon_schedules = await monitor.schedules().fetch()
 
+        const validInterval = ScheduleHelper.validateInterval(day, start, end)
+
+        if (!validInterval)
+          return response.status(400).send({
+            error: 'Este horário está fora dos limites válidos',
+            message: 'Segunda à Sexta - 11:30 às 19:00 | Sábado - 07:00 às 16:30'
+          })
+
         const duration = ScheduleHelper.calculateDuration(start, end)
 
         if (duration.inMinutes < 0)
           return response.status(400).send({
-            error: 'Os horários devem encaixar-se em um único dia'
+            error: 'O horário de término deve ser maior que o horário de início'
           })
 
-        else if (duration.inMinutes < 15)
+        else if (duration.inMinutes < 30)
           return response.status(400).send({
-            error: 'Seu expediente deve possuir uma duração mínima de 15 minutos'
+            error: 'Seu expediente deve possuir uma duração mínima de 30 minutos'
           })
 
-        const validationResult = ScheduleHelper.validate(monitor.workload,
+        else if (duration.inMinutes > (8 * 60))
+          return response.status(400).send({
+            error: 'Seu expediente deve possuir uma duração máxima de 8 horas'
+          })
+
+        const validationResult = ScheduleHelper.validate(
+          monitor.workload,
           mon_schedules, {
           day,
           duration: duration.inMinutes
