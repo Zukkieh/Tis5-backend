@@ -17,7 +17,7 @@ class RequestSchema extends Schema {
       table.integer('monitor_id').unsigned().notNullable()
         .references('id').inTable('monitors')
         .onUpdate('CASCADE').onDelete('CASCADE')
-      table.integer('schedule_id').unsigned().notNullable()
+      table.integer('schedule_id').unsigned()
         .references('id').inTable('schedules')
         .onUpdate('CASCADE').onDelete('SET NULL')
       table.timestamps()
