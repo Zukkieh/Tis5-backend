@@ -15,7 +15,6 @@ class SchedulingController {
 
   async connect() {
     const user = await User.find(this.auth.user.id)
-
     user.socket_id = this.socket.id
 
     await user.save()
@@ -33,6 +32,7 @@ class SchedulingController {
 
     } catch (error) {
       console.error(error)
+      this.socket.emit('error', error)
     }
   }
 
@@ -48,12 +48,28 @@ class SchedulingController {
 
     } catch (error) {
       console.error(error)
+      this.socket.emit('error', error)
+    }
+  }
+
+  async onDelete(data) {
+    try {
+      const result = await RequestService.destroy(this.auth, data)
+
+      if (result.success) {
+        this.socket.emitTo(result.event, result.data, [result.recipient])
+        this.socket.emit('success', { message: 'Solicitação excluída com sucesso' })
+      } else
+        this.socket.emit(result.event, result.data)
+
+    } catch (error) {
+      console.error(error)
+      this.socket.emit('error', error)
     }
   }
 
   async onClose() {
     const user = await User.find(this.auth.user.id)
-
     user.socket_id = null
 
     await user.save()

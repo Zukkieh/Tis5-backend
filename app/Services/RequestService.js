@@ -1,7 +1,8 @@
 const { validateAll } = use('Validator')
+
 const Request = use('App/Models/Request')
-const User = use('App//Models/User')
 const Schedule = use('App/Models/Schedule')
+const User = use('App//Models/User')
 
 const ALN = 'Aluno(a)'
 
@@ -110,6 +111,32 @@ async function create(auth, request) {
         const authUser = await User.find(auth.user.id)
         const authStudent = await authUser.student().fetch()
 
+        if (monitor.student_id == authStudent.id)
+            return {
+                success: false,
+                event: 'error',
+                data: {
+                    error: 'Solicitação inválida'
+                }
+            }
+
+        const alreadyExists = await Request.query()
+            .where('status', 'Pendente')
+            .where('student_id', authStudent.id)
+            .where('monitor_id', schedule.monitor_id)
+            .where('schedule_id', schedule_id)
+            .first()
+
+        if (alreadyExists)
+            return {
+                success: false,
+                event: 'error',
+                data: {
+                    error: 'Solicitação Pendente',
+                    message: 'Esta solicitação já foi criada e está aguardando resposta'
+                }
+            }
+
         const newRequest = await Request.create({
             message,
             status: 'Pendente',
@@ -171,6 +198,16 @@ async function update(auth, response) {
 
         if (mon_student.user_id == auth.user.id) {
 
+            if (oldRequest.status != 'Pendente')
+                return {
+                    success: false,
+                    event: 'error',
+                    data: {
+                        error: 'Solicitação Respondida',
+                        message: `Esta solicitação já foi ${oldRequest.status}`
+                    }
+                }
+
             const { confirmed, message } = response
 
             oldRequest.response = message
@@ -202,9 +239,54 @@ async function update(auth, response) {
     }
 }
 
+async function destroy(auth, requestId) {
+
+    if (auth.user.type == ALN) {
+
+        const authUser = await User.find(auth.user.id)
+        const authStudent = await authUser.student().fetch()
+
+        const oldRequest = await findOne('id', requestId)
+
+        if (!oldRequest)
+            return {
+                success: false,
+                event: 'error',
+                data: {
+                    error: 'Solicitação não encontrada'
+                }
+            }
+
+        if (oldRequest.student_id == authStudent.id) {
+
+            await oldRequest.delete()
+
+            const dataJSON = oldRequest.toJSON()
+
+            const recipient = dataJSON.monitor.student.user.socket_id
+
+            return {
+                success: true,
+                event: 'delete',
+                recipient,
+                data: oldRequest.id
+            }
+        }
+    }
+    return {
+        success: false,
+        event: 'error',
+        data: {
+            error: 'Permissão negada',
+            message: 'Você não tem permissão para excluir esta solicitação'
+        }
+    }
+}
+
 module.exports = {
     findOne,
     findAll,
     create,
-    update
+    update,
+    destroy
 }

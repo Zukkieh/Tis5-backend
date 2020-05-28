@@ -91,24 +91,27 @@ class ScheduleController {
         if (!validInterval)
           return response.status(400).send({
             error: 'Este horário está fora dos limites válidos',
-            message: 'Segunda à Sexta - 11:30 às 19:00 | Sábado - 07:00 às 16:30'
+            message: 'Segunda à Sexta - 11:30 às 19:00, Sábado - 07:00 às 16:30'
           })
 
         const duration = ScheduleHelper.calculateDuration(start, end)
 
         if (duration.inMinutes < 0)
           return response.status(400).send({
-            error: 'O horário de término deve ser maior que o horário de início'
+            error: 'Horário inválido',
+            message: 'O horário de término deve ser maior que o horário de início'
           })
 
         else if (duration.inMinutes < 30)
           return response.status(400).send({
-            error: 'Seu expediente deve possuir uma duração mínima de 30 minutos'
+            error: 'Horário inválido',
+            message: 'Seu expediente deve possuir uma duração mínima de 30 minutos'
           })
 
         else if (duration.inMinutes > (8 * 60))
           return response.status(400).send({
-            error: 'Seu expediente deve possuir uma duração máxima de 8 horas'
+            error: 'Horário inválido',
+            message: 'Seu expediente deve possuir uma duração máxima de 8 horas diárias'
           })
 
         const validationResult = ScheduleHelper.validate(
@@ -132,7 +135,7 @@ class ScheduleController {
 
         } else
           return response.status(409).send({
-            error: 'Não foi possível criar um novo horário',
+            error: 'Não foi possível salvar este horário',
             message: validationResult.message
           })
       }
