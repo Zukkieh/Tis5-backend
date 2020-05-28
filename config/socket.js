@@ -28,7 +28,7 @@ module.exports = {
   | connections.
   |
   */
-  serverInterval: 860000,
+  serverInterval: 50000,
 
   /*
   |--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ module.exports = {
   | will be made before terminating the client connection.
   |
   */
-  serverAttempts: 3,
+  serverAttempts: 5,
 
   /*
   |--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ module.exports = {
   | This interval is used by client to send ping frames to the server.
   |
   */
-  clientInterval: 60000,
+  clientInterval: 25000,
 
   /*
   |--------------------------------------------------------------------------
@@ -62,5 +62,5 @@ module.exports = {
   | been elapsed, the client will consider server as dead.
   |
   */
-  clientAttempts: 3
+  clientAttempts: 5
 }

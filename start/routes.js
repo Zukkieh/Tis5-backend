@@ -43,5 +43,5 @@ Route.group(() => {
   Route.delete('schedule/:id', 'ScheduleController.destroy').as('schedule.destroy')
   Route.get('student/:student_id/request', 'RequestController.index').as('request.index')
   Route.get('monitor/:monitor_id/request', 'RequestController._index').as('request._index')
-  Route.resource('request', 'RequestController').apiOnly().except(['index', 'show'])
+  Route.get('request/:id', 'RequestController.show').as('request.show')
 }).middleware('auth')
