@@ -1,3 +1,5 @@
+'use strict'
+
 const { validateAll } = use('Validator')
 
 const Request = use('App/Models/Request')
@@ -59,6 +61,35 @@ function findAll(field, value) {
             s.select(['id', 'day', 'start', 'end'])
         })
         .where(field, value)
+        .fetch()
+}
+
+function findAttendances(monitorId) {
+
+    return Request.query()
+        .with('student', s => {
+            s.select(['id', 'phone', 'user_id'])
+            s.with('user', u => {
+                u.select(['id', 'name'])
+            })
+        })
+        .with('monitor', m => {
+            m.select(['id', 'student_id', 'subject_id'])
+            m.with('student', s => {
+                s.select(['id', 'phone', 'user_id'])
+                s.with('user', u => {
+                    u.select(['id', 'name'])
+                })
+            })
+            m.with('subject', s => {
+                s.select(['id', 'name', 'shift'])
+            })
+        })
+        .with('schedule', s => {
+            s.select(['id', 'day', 'start', 'end'])
+        })
+        .where('monitor_id', monitorId)
+        .where('status', 'Confirmada')
         .fetch()
 }
 
@@ -133,7 +164,7 @@ async function create(auth, request) {
                 event: 'error',
                 data: {
                     error: 'Solicitação Pendente',
-                    message: 'Esta solicitação já foi criada e está aguardando resposta'
+                    message: 'Esta solicitação já foi criada e está aguardando uma resposta'
                 }
             }
 
@@ -174,7 +205,7 @@ async function update(auth, response) {
 
         const errorMessages = {
             'request_id.required': 'O ID da solicitação é obrigatório',
-            'confirmed.required': 'A resposta da confirmação é obrigatória'
+            'confirmed.required': 'O status de confirmação é obrigatório'
         }
 
         const validation = await validateAll(response, {
@@ -193,6 +224,16 @@ async function update(auth, response) {
             }
 
         const oldRequest = await Request.find(response.request_id)
+
+        if (!oldRequest)
+            return {
+                success: false,
+                event: 'error',
+                data: {
+                    error: 'Solicitação não encontrada'
+                }
+            }
+
         const req_monitor = await oldRequest.monitor().fetch()
         const mon_student = await req_monitor.student().fetch()
 
@@ -212,6 +253,9 @@ async function update(auth, response) {
 
             oldRequest.response = message
             oldRequest.status = confirmed ? 'Confirmada' : 'Recusada'
+
+            if (confirmed)
+                oldRequest.attendance = 'Pendente'
 
             await oldRequest.save()
 
@@ -286,6 +330,7 @@ async function destroy(auth, requestId) {
 module.exports = {
     findOne,
     findAll,
+    findAttendances,
     create,
     update,
     destroy
