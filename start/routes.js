@@ -44,4 +44,7 @@ Route.group(() => {
   Route.get('student/:student_id/request', 'RequestController.index').as('request.index')
   Route.get('monitor/:monitor_id/request', 'RequestController._index').as('request._index')
   Route.get('request/:id', 'RequestController.show').as('request.show')
+  Route.get('monitor/:monitor_id/attendance', 'AttendanceController.index').as('attendance.index')
+  Route.patch('request/:request_id/attendance', 'AttendanceController.update').as('attendance.update')
+  Route.get('course/:course_id/report', 'ReportController.index').as('report.index')
 }).middleware('auth')
