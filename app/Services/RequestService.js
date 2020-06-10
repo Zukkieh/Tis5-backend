@@ -303,6 +303,16 @@ async function destroy(auth, requestId) {
 
         if (oldRequest.student_id == authStudent.id) {
 
+            if (oldRequest.status != 'Pendente')
+                return {
+                    success: false,
+                    event: 'error',
+                    data: {
+                        error: 'Não é possível excluir esta solicitação',
+                        message: 'Esta solicitação já foi respondida'
+                    }
+                }
+
             await oldRequest.delete()
 
             const dataJSON = oldRequest.toJSON()
