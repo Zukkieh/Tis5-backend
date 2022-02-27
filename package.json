@@ -27,7 +27,7 @@
     "@adonisjs/validator": "^5.0.6",
     "@adonisjs/websocket": "^1.0.12",
     "pg": "^7.18.2",
-    "url-parse": "^1.4.7"
+    "url-parse": "^1.5.8"
   },
   "devDependencies": {},
   "autoload": {
